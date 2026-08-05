@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# Generated icon files (build.py recreates them from ../pcs-control/icon128.png)
+icon.ico
+icon.icns
+icon.iconset/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
