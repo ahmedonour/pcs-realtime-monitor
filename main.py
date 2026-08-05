@@ -173,25 +173,30 @@ class PcsRealtimeMonitor(ctk.CTk):
         main.grid_rowconfigure(0, weight=3)
         main.grid_rowconfigure(1, weight=2)
 
-        # Table header
-        head = ctk.CTkFrame(main)
-        head.grid(row=0, column=0, sticky="new")
+        # Realtime table (header + scrollable rows)
+        table_area = ctk.CTkFrame(main)
+        table_area.grid(row=0, column=0, sticky="nsew")
+        table_area.grid_columnconfigure(0, weight=1)
+        table_area.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(table_area)
+        head.grid(row=0, column=0, sticky="ew")
         self._grid_header(head, "REQUEST", 0)
         self._grid_header(head, "STATUS", 1)
         self._grid_header(head, "LATEST RESULT", 2)
         self._grid_header(head, "TIME", 3)
 
-        self.table = ctk.CTkScrollableFrame(main, label_text="Realtime Requests (1s)")
-        self.table.grid(row=0, column=0, sticky="nsew", pady=(4, 4))
+        self.table = ctk.CTkScrollableFrame(table_area, label_text="Realtime Requests (1s)")
+        self.table.grid(row=1, column=0, sticky="nsew", padx=4, pady=(0, 4))
         self.table.grid_columnconfigure(0, weight=1)
         self.table.grid_columnconfigure(2, weight=2)
 
         for i, req in enumerate(REALTIME_REQUESTS):
             self._add_row(i, req)
 
-        # Details
+        # Details (scrollable)
         det = ctk.CTkFrame(main)
-        det.grid(row=1, column=0, sticky="nsew")
+        det.grid(row=1, column=0, sticky="nsew", pady=(4, 0))
         det.grid_columnconfigure(0, weight=1)
         det.grid_rowconfigure(1, weight=1)
         top = ctk.CTkFrame(det, fg_color="transparent")
@@ -205,7 +210,13 @@ class PcsRealtimeMonitor(ctk.CTk):
             font=ctk.CTkFont(size=11),
         )
         self.detail_select.pack(side="right")
-        self.txt_detail = ctk.CTkTextbox(det, font=ctk.CTkFont(size=11), state="disabled")
+        self.txt_detail = ctk.CTkTextbox(
+            det,
+            font=ctk.CTkFont(size=11),
+            state="disabled",
+            wrap="word",
+            activate_scrollbars=True,
+        )
         self.txt_detail.grid(row=1, column=0, sticky="nsew", padx=8, pady=6)
 
     def _grid_header(self, parent, text, col):
