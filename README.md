@@ -65,24 +65,7 @@ xattr -dr com.apple.quarantine dist/PCS-Realtime-Monitor.app
 
 ## What it does
 
-- **Login** – `POST /v1/user/login` (defaults: `http://192.168.0.123`, `admin` / `aiWatt+0`). Edit the fields and press **Login**.
-- **Realtime Monitor** – polls all 10 endpoints from the extension's `realTime-Cs21J90M.js` every interval (default **1s**), each request in its own thread:
-  - `GET /v1/actual-time/bms-clusters/{deviceId}`
-  - `GET /v1/actual-time/total/{deviceId}` (SSE)
-  - `GET /v1/sse/charge-pail` (SSE)
-  - `GET /v1/sse/photovoltaic` (SSE)
-  - `GET /v1/sse/relay-protection` (SSE)
-  - `GET /v1/sse/transformer-temperature-controller` (SSE)
-  - `GET /v1/sse/dido` (SSE)
-  - `GET /v1/sse/temperature-humidity-controller` (SSE)
-  - `GET /v1/system-setting/realtime-data-col`
-  - `PUT /v1/system-setting/realtime-data-col` (body from the JSON Body field)
-- **Table** – one row per request showing method/status, latest result (truncated) and timestamp. Pick a request in the **Details** dropdown to see its full JSON.
-- **PCS Control** (extension replica) – Run PCS sequence (Stop → Fault reset → System operate reset → Device startup, `PATCH /v1/pcs-control/{id}`), Save Charge Power (`PATCH /v1/photovoltaic-charge/2`), and BMS polling (`POST /v1/history-data`, every 5s).
-
-## Controls
-
-- **Start (1s)** – begins polling all requests + BMS every interval.
-- **Stop** – stops all polling threads.
-- **Run Once (all)** – single pass over all requests.
-- SSE endpoints are read as streams for ~3s per poll (up to 5 events) since the server keeps the connection open; a plain GET would block forever.
+- **Login screen first** – enter server URL, username and password (defaults: `http://192.168.0.123`, `admin` / `aiWatt+0`) and press **Login**. Only after a successful login does the dashboard appear.
+- **Photovoltaic output power** – subscribes to the realtime SSE stream `GET /v1/sse/photovoltaic?purpose=2&pageSize=12&page=1` every 1 second and shows the device `name` plus `data.alternating_current_output_power` in kW as a large live number.
+- **Battery (BMS) SOC** – polls the extension's history request `POST /v1/history-data?page=1&page-size=1` (`device_type: 2`, fields `bms_soc` + `bms_running_status`) every 5 seconds and shows SOC% with a progress bar and BMS status.
+- **Log out** – stops polling and returns to the login screen.
