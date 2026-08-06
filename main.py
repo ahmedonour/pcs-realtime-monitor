@@ -8,6 +8,7 @@ A clean CustomTkinter dashboard:
 """
 
 import json
+import socket
 import sys
 import threading
 import time
@@ -318,6 +319,8 @@ class PcsRealtimeMonitor(ctk.CTk):
                 url = f"{self.settings['base_url']}/v1/sse/photovoltaic?{PV_QUERY}"
                 headers = {
                     "Authorization": f"Bearer {self.token}",
+                    "Accept": "text/event-stream",
+                    "Cache-Control": "no-cache",
                     "Content-Type": "application/json;charset=utf-8",
                 }
                 devices = {}
@@ -328,35 +331,45 @@ class PcsRealtimeMonitor(ctk.CTk):
                         self.pv = {"devices": devices, "ts": datetime.now().strftime("%H:%M:%S"), "error": None}
             except Exception as e:
                 with self.lock:
-                    self.pv = {"devices": {}, "ts": None, "error": str(e)}
+                    self.pv["error"] = str(e)
             self.stop_event.wait(1.0)
 
-    def read_sse_events(self, url, headers, timeout=3.0, max_events=100):
-        events = []
-        with self.session.get(url, headers=headers, stream=True, timeout=(3, 3)) as resp:
+    def read_sse_events(self, url, headers, timeout=8.0, max_events=100):
+        resp = self.session.get(url, headers=headers, stream=True, timeout=(10, None))
+        try:
             if not resp.ok:
                 raise RuntimeError(f"HTTP {resp.status_code}: {resp.text[:200]}")
+            try:
+                resp.raw.connection.sock.settimeout(timeout)
+            except Exception:
+                pass
+            events = []
             buffer = ""
-            start = time.time()
-            for raw in resp.iter_lines(decode_unicode=True):
-                if time.time() - start > timeout:
-                    break
-                if raw is None:
-                    continue
-                buffer += raw + "\n"
-                while "\n\n" in buffer:
-                    block, _, buffer = buffer.partition("\n\n")
-                    for line in block.splitlines():
-                        if line.startswith("data:"):
-                            payload = line[5:].strip()
-                            if payload:
-                                try:
-                                    events.append(json.loads(payload))
-                                except Exception:
-                                    pass
-                    if len(events) >= max_events:
+            deadline = time.time() + timeout
+            try:
+                for raw in resp.iter_lines(decode_unicode=True):
+                    if time.time() > deadline:
                         break
-        return events
+                    if raw is None:
+                        continue
+                    buffer += raw.rstrip("\r") + "\n"
+                    while "\n\n" in buffer:
+                        block, _, buffer = buffer.partition("\n\n")
+                        for line in block.split("\n"):
+                            if line.startswith("data:"):
+                                payload = line[5:].strip()
+                                if payload:
+                                    try:
+                                        events.append(json.loads(payload))
+                                    except Exception:
+                                        pass
+                        if len(events) >= max_events:
+                            return events
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, socket.timeout):
+                pass
+            return events
+        finally:
+            resp.close()
 
     @staticmethod
     def parse_pv_event(event):
@@ -434,17 +447,15 @@ class PcsRealtimeMonitor(ctk.CTk):
                 self.render_pv_cards(pv_names)
             if pv.get("error"):
                 self.lbl_pv_ts.configure(text=f"connection error: {pv['error'][:50]}", text_color=COLOR_RED)
-                for value in self.pv_cards.values():
-                    value.configure(text="--", text_color=COLOR_RED)
             else:
                 self.lbl_pv_ts.configure(text="updated " + pv["ts"] if pv.get("ts") else "waiting for data...",
                                          text_color=COLOR_GRAY)
-                for name, value in self.pv_cards.items():
-                    power = pv["devices"].get(name)
-                    if power is not None:
-                        value.configure(text=f"{power} kW", text_color=COLOR_GREEN)
-                    else:
-                        value.configure(text="--", text_color=COLOR_GREEN)
+            for name, value in self.pv_cards.items():
+                power = pv["devices"].get(name)
+                if power is not None:
+                    value.configure(text=f"{power} kW", text_color=COLOR_GREEN)
+                else:
+                    value.configure(text="--", text_color=COLOR_GREEN)
 
             # --- battery ---
             bms_names = list(bms["devices"].keys())
@@ -452,14 +463,10 @@ class PcsRealtimeMonitor(ctk.CTk):
                 self.render_bms_cards(bms_names)
             if bms.get("error"):
                 self.lbl_bms_ts.configure(text=f"connection error: {bms['error'][:50]}", text_color=COLOR_RED)
-                for card in self.bms_cards.values():
-                    card["value"].configure(text="--", text_color=COLOR_RED)
-                    card["progress"].set(0)
-                    card["status"].configure(text="error")
             else:
                 self.lbl_bms_ts.configure(text="updated " + bms["ts"] if bms.get("ts") else "waiting for data...",
                                           text_color=COLOR_GRAY)
-                for name, card in self.bms_cards.items():
+            for name, card in self.bms_cards.items():
                     info = bms["devices"].get(name) or {}
                     soc = info.get("soc")
                     if soc is not None:
