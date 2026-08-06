@@ -104,7 +104,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.login_view.grid_columnconfigure(0, weight=1)
         self.login_view.grid_rowconfigure(0, weight=1)
 
-        card = ctk.CTkFrame(self.login_view, corner_radius=16, width=400)
+        card = ctk.CTkFrame(self.login_view, corner_radius=16, width=400, height=470)
         card.grid(row=0, column=0, padx=30, pady=30)
         card.grid_propagate(False)
         card.grid_columnconfigure(0, weight=1)
