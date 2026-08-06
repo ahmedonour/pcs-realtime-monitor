@@ -37,6 +37,14 @@ PV_QUERY = "purpose=2&pageSize=12&page=1"
 BMS_DEVICE_IDS = [2, 3]
 BMS_INTERVAL = 5.0  # seconds (matches the extension)
 
+SEQUENCE_STEPS = [
+    ("pcs_device_stop", "Stop device"),
+    ("pcs_fault_reset", "Fault reset"),
+    ("pcs_system_operate_reset", "System operate reset"),
+    ("pcs_device_startup", "Device startup"),
+]
+PV_CHARGE_DEVICE_IDS = [1, 2, 3, 4, 6]
+
 COLOR_GREEN = "#4cc38a"
 COLOR_RED = "#e65454"
 COLOR_GRAY = "#8a8aa3"
@@ -86,10 +94,20 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.stop_event = threading.Event()
         self.workers = []
 
+        self.sequence_running = False
+        self.sequence_status = {}
+
         self.pv_cards = {}
         self.bms_cards = {}
         self.pv_rendered = []
         self.bms_rendered = []
+
+        self.btn_seq_both = None
+        self.btn_seq_bms = {}
+        self.lbl_seq_status = None
+        self.ent_pv_power = None
+        self.btn_pv_power = None
+        self.lbl_pv_power_status = None
 
         self._window_icon()
         self.build_login()
@@ -199,9 +217,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.content.grid(row=1, column=0, sticky="nsew", padx=20, pady=4)
         self.content.grid_columnconfigure(0, weight=1)
 
+        self.build_control_section()
+
         # Photovoltaic section
         pv_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        pv_head.grid(row=0, column=0, sticky="ew")
+        pv_head.grid(row=1, column=0, sticky="ew")
         pv_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(pv_head, text="PHOTOVOLTAIC DEVICES", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
@@ -209,11 +229,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_pv_ts.pack(side="right")
 
         self.pv_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.pv_container.grid(row=1, column=0, sticky="ew", pady=(6, 4))
+        self.pv_container.grid(row=2, column=0, sticky="ew", pady=(6, 4))
 
         # Battery section
         bms_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        bms_head.grid(row=2, column=0, sticky="ew", pady=(16, 0))
+        bms_head.grid(row=3, column=0, sticky="ew", pady=(16, 0))
         bms_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(bms_head, text="BATTERY (BMS)", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
@@ -221,7 +241,46 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_bms_ts.pack(side="right")
 
         self.bms_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.bms_container.grid(row=3, column=0, sticky="ew", pady=(6, 4))
+        self.bms_container.grid(row=4, column=0, sticky="ew", pady=(6, 4))
+
+    def build_control_section(self):
+        ctl = ctk.CTkFrame(self.content, corner_radius=12, fg_color="#1c1d30")
+        ctl.grid(row=0, column=0, sticky="ew", pady=(0, 14))
+
+        ctk.CTkLabel(ctl, text="CONTROL", font=ctk.CTkFont(size=11, weight="bold"),
+                     text_color=COLOR_GRAY).pack(anchor="w", padx=16, pady=(12, 4))
+
+        seq_row = ctk.CTkFrame(ctl, fg_color="transparent")
+        seq_row.pack(fill="x", padx=16, pady=(0, 4))
+        ctk.CTkLabel(seq_row, text="Run sequence", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left", padx=(0, 12))
+        self.btn_seq_both = ctk.CTkButton(seq_row, text="Both batteries", width=120, height=30, corner_radius=8,
+                                          command=lambda: self.start_sequence(list(self.settings["device_ids"])))
+        self.btn_seq_both.pack(side="left", padx=(0, 8))
+        self.btn_seq_bms = {}
+        for did in self.settings["device_ids"]:
+            btn = ctk.CTkButton(seq_row, text=f"BMS {did}", width=90, height=30, corner_radius=8,
+                                command=lambda d=did: self.start_sequence([d]))
+            btn.pack(side="left", padx=(0, 8))
+            self.btn_seq_bms[did] = btn
+
+        self.lbl_seq_status = ctk.CTkLabel(ctl, text="idle", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY)
+        self.lbl_seq_status.pack(anchor="w", padx=16, pady=(0, 8))
+
+        ctk.CTkFrame(ctl, height=1, fg_color="#2c2d45").pack(fill="x", padx=16, pady=(0, 8))
+
+        pv_row = ctk.CTkFrame(ctl, fg_color="transparent")
+        pv_row.pack(fill="x", padx=16, pady=(0, 4))
+        ctk.CTkLabel(pv_row, text="PV power (run_power)", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left", padx=(0, 12))
+        self.ent_pv_power = ctk.CTkEntry(pv_row, width=110, height=30, corner_radius=8)
+        self.ent_pv_power.insert(0, "100")
+        self.ent_pv_power.pack(side="left", padx=(0, 8))
+        ctk.CTkLabel(pv_row, text="kW", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY).pack(side="left", padx=(0, 12))
+        self.btn_pv_power = ctk.CTkButton(pv_row, text="Apply", width=90, height=30, corner_radius=8,
+                                          command=self.apply_pv_power)
+        self.btn_pv_power.pack(side="left")
+
+        self.lbl_pv_power_status = ctk.CTkLabel(ctl, text="", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY)
+        self.lbl_pv_power_status.pack(anchor="w", padx=16, pady=(0, 12))
 
     def show_dashboard(self):
         self.current_view = "dashboard"
@@ -230,6 +289,8 @@ class PcsRealtimeMonitor(ctk.CTk):
 
     def logout(self):
         self.token = None
+        self.sequence_running = False
+        self.sequence_status = {}
         self.show_login()
         with self.lock:
             self.pv = {"devices": {}, "ts": None, "error": None}
@@ -296,6 +357,95 @@ class PcsRealtimeMonitor(ctk.CTk):
         if data.get("code") not in (0, None):
             raise RuntimeError(f"code={data.get('code')} message={data.get('message')}")
         self.token = data["data"]["token"]
+
+    # ------------------------------------------------------------ control
+    def _api_patch(self, path, body):
+        if not self.token:
+            self.login()
+        url = f"{self.settings['base_url']}{path}"
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json;charset=utf-8",
+        }
+        resp = self.session.patch(url, headers=headers, json=body, timeout=(5, 10))
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("code") not in (0, None):
+            raise RuntimeError(f"code={data.get('code')} message={data.get('message')}")
+        return data
+
+    def start_sequence(self, device_ids):
+        if self.sequence_running or not device_ids:
+            return
+        self.sequence_running = True
+        with self.lock:
+            self.sequence_status = {did: {"step": "queued", "error": None, "done": False} for did in device_ids}
+        threading.Thread(target=self._sequence_worker, args=(list(device_ids),), daemon=True).start()
+
+    def _sequence_worker(self, device_ids):
+        try:
+            if not self.token:
+                self.login()
+            for did in device_ids:
+                for field, label in SEQUENCE_STEPS:
+                    if not self.sequence_running:
+                        return
+                    with self.lock:
+                        self.sequence_status[did] = {"step": label, "error": None, "done": False}
+                    try:
+                        self._api_patch(f"/v1/pcs-control/{did}", {field: 1})
+                    except Exception as e:
+                        with self.lock:
+                            self.sequence_status[did] = {"step": label, "error": str(e), "done": False}
+                        return
+                with self.lock:
+                    self.sequence_status[did] = {"step": "complete", "error": None, "done": True}
+        except Exception as e:
+            with self.lock:
+                for did in device_ids:
+                    if not self.sequence_status.get(did, {}).get("done"):
+                        self.sequence_status[did] = {"step": "error", "error": str(e), "done": False}
+        finally:
+            self.sequence_running = False
+
+    def apply_pv_power(self):
+        raw = self.ent_pv_power.get().strip()
+        try:
+            run_power = float(raw)
+        except ValueError:
+            self.lbl_pv_power_status.configure(text="Invalid number", text_color=COLOR_RED)
+            return
+        self.btn_pv_power.configure(state="disabled", text="Applying...")
+        threading.Thread(target=self._pv_power_worker, args=(run_power,), daemon=True).start()
+
+    def _pv_power_worker(self, run_power):
+        try:
+            if not self.token:
+                self.login()
+            body = {
+                "status": 1,
+                "month": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+                "week_day": [0, 1, 2, 3, 4, 5, 6],
+                "device_ids": PV_CHARGE_DEVICE_IDS,
+                "settings": [{
+                    "start_hour": 0,
+                    "start_minute": 0,
+                    "end_hour": 23,
+                    "end_minute": 59,
+                    "cdc_enable_mode": 2,
+                    "run_power": run_power,
+                }],
+                "charge_type": 1,
+                "mode": 2,
+            }
+            self._api_patch("/v1/photovoltaic-charge/2", body)
+            self.after(0, lambda: self.lbl_pv_power_status.configure(
+                text=f"PV power set to {run_power} kW", text_color=COLOR_GREEN))
+        except Exception as e:
+            self.after(0, lambda: self.lbl_pv_power_status.configure(
+                text=f"Failed: {str(e)[:60]}", text_color=COLOR_RED))
+        finally:
+            self.after(0, lambda: self.btn_pv_power.configure(state="normal", text="Apply"))
 
     # ------------------------------------------------------------ polling
     def start_polling(self):
@@ -440,6 +590,28 @@ class PcsRealtimeMonitor(ctk.CTk):
             with self.lock:
                 pv = dict(self.pv)
                 bms = dict(self.bms)
+                seq = dict(self.sequence_status)
+
+            # --- control: sequence status ---
+            state = "disabled" if self.sequence_running else "normal"
+            self.btn_seq_both.configure(state=state)
+            for btn in self.btn_seq_bms.values():
+                btn.configure(state=state)
+            if self.sequence_running or seq:
+                parts = []
+                failed = False
+                for did, st in seq.items():
+                    if st.get("error"):
+                        parts.append(f"BMS {did}: error ({st['error'][:40]})")
+                        failed = True
+                    elif st.get("done"):
+                        parts.append(f"BMS {did}: done")
+                    else:
+                        parts.append(f"BMS {did}: {st.get('step', '...')}")
+                self.lbl_seq_status.configure(text="  |  ".join(parts),
+                                              text_color=COLOR_RED if failed else COLOR_INFO)
+            else:
+                self.lbl_seq_status.configure(text="idle", text_color=COLOR_GRAY)
 
             # --- photovoltaic ---
             pv_names = sorted(pv["devices"].keys())
