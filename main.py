@@ -3,8 +3,8 @@
 
 A clean CustomTkinter dashboard:
   - Login screen first; after login the dashboard appears.
-  - Photovoltaic SSE stream -> shows device name + alternating_current_output_power.
-  - BMS SOC (extension's /v1/history-data poll).
+  - Photovoltaic SSE stream -> one card per device (PV1..PV5) with output power.
+  - Battery SOC for every BMS device (extension's /v1/history-data poll).
 """
 
 import json
@@ -33,12 +33,15 @@ DEFAULT_BASE_URL = "http://192.168.0.123"
 DEFAULT_USERNAME = "admin"
 DEFAULT_PASSWORD = "aiWatt+0"
 PV_QUERY = "purpose=2&pageSize=12&page=1"
+BMS_DEVICE_IDS = [2, 3]
 BMS_INTERVAL = 5.0  # seconds (matches the extension)
 
 COLOR_GREEN = "#4cc38a"
 COLOR_RED = "#e65454"
 COLOR_GRAY = "#8a8aa3"
 COLOR_INFO = "#54a0e8"
+
+BMS_STATUS_MAP = {1: "Standby", 2: "Running", 3: "Charging", 4: "Discharging"}
 
 
 def deep_find(obj, key):
@@ -61,8 +64,8 @@ class PcsRealtimeMonitor(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("PCS Realtime Monitor")
-        self.geometry("760x540")
-        self.minsize(680, 480)
+        self.geometry("920x660")
+        self.minsize(760, 560)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -72,14 +75,20 @@ class PcsRealtimeMonitor(ctk.CTk):
             "base_url": DEFAULT_BASE_URL,
             "username": DEFAULT_USERNAME,
             "password": DEFAULT_PASSWORD,
+            "device_ids": BMS_DEVICE_IDS,
         }
         self.current_view = "login"
 
         self.lock = threading.Lock()
-        self.pv = {"name": None, "power": None, "ts": None, "error": None}
-        self.bms = {"soc": None, "status": None, "ts": None, "error": None}
+        self.pv = {"devices": {}, "ts": None, "error": None}
+        self.bms = {"devices": {}, "ts": None, "error": None}
         self.stop_event = threading.Event()
         self.workers = []
+
+        self.pv_cards = {}
+        self.bms_cards = {}
+        self.pv_rendered = []
+        self.bms_rendered = []
 
         self._window_icon()
         self.build_login()
@@ -115,8 +124,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             logo = ctk.CTkImage(PILImage.open(str(ICON_FILE)), size=(64, 64))
         except Exception:
             pass
-        self.lbl_logo = ctk.CTkLabel(card, text="", image=logo)
-        self.lbl_logo.grid(row=0, column=0, pady=(28, 4))
+        ctk.CTkLabel(card, text="", image=logo).grid(row=0, column=0, pady=(28, 4))
 
         ctk.CTkLabel(card, text="PCS Realtime Monitor", font=ctk.CTkFont(size=20, weight="bold")).grid(row=1, column=0, pady=(0, 2))
         ctk.CTkLabel(card, text="Sign in to view the live dashboard", font=ctk.CTkFont(size=12), text_color=COLOR_GRAY).grid(row=2, column=0, pady=(0, 18))
@@ -161,7 +169,7 @@ class PcsRealtimeMonitor(ctk.CTk):
 
     def _login_ok(self):
         self.btn_login.configure(state="normal", text="Login")
-        self.lbl_login_msg.configure(text="", text_color=COLOR_GREEN)
+        self.lbl_login_msg.configure(text="")
         self.show_dashboard()
         self.start_polling()
 
@@ -186,41 +194,33 @@ class PcsRealtimeMonitor(ctk.CTk):
                                         fg_color="#3a3a52", hover_color="#4a4a66", command=self.logout)
         self.btn_logout.pack(side="right")
 
-        content = ctk.CTkFrame(self.dashboard_view, fg_color="transparent")
-        content.grid(row=1, column=0, sticky="nsew", padx=24, pady=8)
-        content.grid_columnconfigure(0, weight=1)
-        content.grid_columnconfigure(1, weight=1)
-        content.grid_rowconfigure(0, weight=1)
+        self.content = ctk.CTkScrollableFrame(self.dashboard_view, fg_color="transparent")
+        self.content.grid(row=1, column=0, sticky="nsew", padx=20, pady=4)
+        self.content.grid_columnconfigure(0, weight=1)
 
-        # Photovoltaic card
-        pv_card = ctk.CTkFrame(content, corner_radius=16, fg_color="#1f2035")
-        pv_card.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
-        ctk.CTkLabel(pv_card, text="PHOTOVOLTAIC OUTPUT POWER", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_GRAY).pack(anchor="w", padx=20, pady=(18, 2))
-        self.lbl_pv_name = ctk.CTkLabel(pv_card, text="-", font=ctk.CTkFont(size=13), text_color=COLOR_INFO)
-        self.lbl_pv_name.pack(anchor="w", padx=20, pady=(0, 4))
-        self.lbl_pv_value = ctk.CTkLabel(pv_card, text="--", font=ctk.CTkFont(size=52, weight="bold"),
-                                         text_color=COLOR_GREEN)
-        self.lbl_pv_value.pack(anchor="w", padx=20, pady=(4, 0))
-        ctk.CTkLabel(pv_card, text="kilowatts (kW)", font=ctk.CTkFont(size=12), text_color=COLOR_GRAY).pack(anchor="w", padx=20)
-        self.lbl_pv_ts = ctk.CTkLabel(pv_card, text="waiting for data...", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY)
-        self.lbl_pv_ts.pack(anchor="w", padx=20, pady=(14, 18))
+        # Photovoltaic section
+        pv_head = ctk.CTkFrame(self.content, fg_color="transparent")
+        pv_head.grid(row=0, column=0, sticky="ew")
+        pv_head.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(pv_head, text="PHOTOVOLTAIC DEVICES", font=ctk.CTkFont(size=11, weight="bold"),
+                     text_color=COLOR_GRAY).pack(side="left")
+        self.lbl_pv_ts = ctk.CTkLabel(pv_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_pv_ts.pack(side="right")
 
-        # Battery / BMS card
-        bms_card = ctk.CTkFrame(content, corner_radius=16, fg_color="#1f2035")
-        bms_card.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
-        ctk.CTkLabel(bms_card, text="BATTERY (BMS)", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_GRAY).pack(anchor="w", padx=20, pady=(18, 2))
-        self.lbl_bms_status = ctk.CTkLabel(bms_card, text="-", font=ctk.CTkFont(size=13), text_color=COLOR_INFO)
-        self.lbl_bms_status.pack(anchor="w", padx=20, pady=(0, 4))
-        self.lbl_bms_value = ctk.CTkLabel(bms_card, text="--", font=ctk.CTkFont(size=52, weight="bold"),
-                                          text_color=COLOR_GREEN)
-        self.lbl_bms_value.pack(anchor="w", padx=20, pady=(4, 0))
-        self.progress = ctk.CTkProgressBar(bms_card, height=10, corner_radius=5, progress_color=COLOR_GREEN)
-        self.progress.set(0)
-        self.progress.pack(fill="x", padx=20, pady=(12, 6))
-        self.lbl_bms_ts = ctk.CTkLabel(bms_card, text="waiting for data...", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY)
-        self.lbl_bms_ts.pack(anchor="w", padx=20, pady=(8, 18))
+        self.pv_container = ctk.CTkFrame(self.content, fg_color="transparent")
+        self.pv_container.grid(row=1, column=0, sticky="ew", pady=(6, 4))
+
+        # Battery section
+        bms_head = ctk.CTkFrame(self.content, fg_color="transparent")
+        bms_head.grid(row=2, column=0, sticky="ew", pady=(16, 0))
+        bms_head.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(bms_head, text="BATTERY (BMS)", font=ctk.CTkFont(size=11, weight="bold"),
+                     text_color=COLOR_GRAY).pack(side="left")
+        self.lbl_bms_ts = ctk.CTkLabel(bms_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_bms_ts.pack(side="right")
+
+        self.bms_container = ctk.CTkFrame(self.content, fg_color="transparent")
+        self.bms_container.grid(row=3, column=0, sticky="ew", pady=(6, 4))
 
     def show_dashboard(self):
         self.current_view = "dashboard"
@@ -231,8 +231,49 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.token = None
         self.show_login()
         with self.lock:
-            self.pv = {"name": None, "power": None, "ts": None, "error": None}
-            self.bms = {"soc": None, "status": None, "ts": None, "error": None}
+            self.pv = {"devices": {}, "ts": None, "error": None}
+            self.bms = {"devices": {}, "ts": None, "error": None}
+
+    # ------------------------------------------------------------ cards
+    def render_pv_cards(self, names):
+        for w in self.pv_container.winfo_children():
+            w.destroy()
+        self.pv_cards = {}
+        cols = 3
+        for i, name in enumerate(names):
+            card = ctk.CTkFrame(self.pv_container, corner_radius=12, fg_color="#1f2035")
+            r, c = divmod(i, cols)
+            card.grid(row=r, column=c, sticky="ew", padx=6, pady=6)
+            self.pv_container.grid_columnconfigure(c, weight=1, uniform="pv")
+            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=13, weight="bold"),
+                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(12, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=30, weight="bold"), text_color=COLOR_GREEN)
+            value.pack(anchor="w", padx=14)
+            ctk.CTkLabel(card, text="kilowatts (kW)", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY).pack(anchor="w", padx=14, pady=(0, 12))
+            self.pv_cards[name] = value
+        self.pv_rendered = list(names)
+
+    def render_bms_cards(self, names):
+        for w in self.bms_container.winfo_children():
+            w.destroy()
+        self.bms_cards = {}
+        cols = 2
+        for i, name in enumerate(names):
+            card = ctk.CTkFrame(self.bms_container, corner_radius=12, fg_color="#1f2035")
+            r, c = divmod(i, cols)
+            card.grid(row=r, column=c, sticky="ew", padx=6, pady=6)
+            self.bms_container.grid_columnconfigure(c, weight=1, uniform="bms")
+            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=13, weight="bold"),
+                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(12, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=30, weight="bold"), text_color=COLOR_GREEN)
+            value.pack(anchor="w", padx=14)
+            progress = ctk.CTkProgressBar(card, height=8, corner_radius=4, progress_color=COLOR_GREEN)
+            progress.set(0)
+            progress.pack(fill="x", padx=14, pady=(8, 4))
+            status = ctk.CTkLabel(card, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+            status.pack(anchor="w", padx=14, pady=(0, 12))
+            self.bms_cards[name] = {"value": value, "progress": progress, "status": status}
+        self.bms_rendered = list(names)
 
     # ------------------------------------------------------------ api
     def read_settings(self):
@@ -279,17 +320,19 @@ class PcsRealtimeMonitor(ctk.CTk):
                     "Authorization": f"Bearer {self.token}",
                     "Content-Type": "application/json;charset=utf-8",
                 }
-                event = self.read_sse_event(url, headers)
-                if event is not None:
-                    name, power = self.extract_pv(event)
+                devices = {}
+                for event in self.read_sse_events(url, headers):
+                    devices.update(self.parse_pv_event(event))
+                if devices:
                     with self.lock:
-                        self.pv = {"name": name, "power": power, "ts": datetime.now().strftime("%H:%M:%S"), "error": None}
+                        self.pv = {"devices": devices, "ts": datetime.now().strftime("%H:%M:%S"), "error": None}
             except Exception as e:
                 with self.lock:
-                    self.pv = {"name": None, "power": None, "ts": None, "error": str(e)}
+                    self.pv = {"devices": {}, "ts": None, "error": str(e)}
             self.stop_event.wait(1.0)
 
-    def read_sse_event(self, url, headers, timeout=3.0):
+    def read_sse_events(self, url, headers, timeout=3.0, max_events=100):
+        events = []
         with self.session.get(url, headers=headers, stream=True, timeout=(3, 3)) as resp:
             if not resp.ok:
                 raise RuntimeError(f"HTTP {resp.status_code}: {resp.text[:200]}")
@@ -301,22 +344,36 @@ class PcsRealtimeMonitor(ctk.CTk):
                 if raw is None:
                     continue
                 buffer += raw + "\n"
-                if "\n\n" in buffer:
+                while "\n\n" in buffer:
                     block, _, buffer = buffer.partition("\n\n")
                     for line in block.splitlines():
                         if line.startswith("data:"):
                             payload = line[5:].strip()
                             if payload:
                                 try:
-                                    return json.loads(payload)
+                                    events.append(json.loads(payload))
                                 except Exception:
-                                    continue
-        raise RuntimeError("no SSE data received")
+                                    pass
+                    if len(events) >= max_events:
+                        break
+        return events
 
     @staticmethod
-    def extract_pv(event):
+    def parse_pv_event(event):
+        devices = {}
         if not isinstance(event, dict):
-            return None, None
+            return devices
+        lst = event.get("list")
+        if isinstance(lst, list):
+            for idx, item in enumerate(lst):
+                if not isinstance(item, dict):
+                    continue
+                name = item.get("name") or f"PV {item.get('photovoltaicId', idx + 1)}"
+                power = deep_find(item, "alternating_current_output_power")
+                if power is None:
+                    power = deep_find(item, "alternatingCurrentOutputPower")
+                devices[name] = power
+            return devices
         name = event.get("name")
         power = None
         data = event.get("data")
@@ -326,14 +383,17 @@ class PcsRealtimeMonitor(ctk.CTk):
             power = deep_find(event, "alternating_current_output_power")
         if power is None:
             power = deep_find(event, "alternatingCurrentOutputPower")
-        return name, power
+        if name:
+            devices[name] = power
+        return devices
 
     def bms_worker(self):
         while not self.stop_event.is_set():
             try:
                 if not self.token:
                     self.login()
-                for did in self.settings.get("device_ids", [2, 3]):
+                devices = {}
+                for did in self.settings.get("device_ids", BMS_DEVICE_IDS):
                     url = f"{self.settings['base_url']}/v1/history-data?page=1&page-size=1"
                     headers = {
                         "Authorization": f"Bearer {self.token}",
@@ -349,17 +409,16 @@ class PcsRealtimeMonitor(ctk.CTk):
                     items = (data.get("data") or {}).get("list") or []
                     if items:
                         latest = items[0]
-                        with self.lock:
-                            self.bms = {
-                                "soc": latest.get("bms_soc"),
-                                "status": latest.get("bms_running_status"),
-                                "ts": datetime.now().strftime("%H:%M:%S"),
-                                "error": None,
-                            }
-                        break
+                        devices[f"BMS {did}"] = {
+                            "soc": latest.get("bms_soc"),
+                            "status": latest.get("bms_running_status"),
+                        }
+                if devices:
+                    with self.lock:
+                        self.bms = {"devices": devices, "ts": datetime.now().strftime("%H:%M:%S"), "error": None}
             except Exception as e:
                 with self.lock:
-                    self.bms = {"soc": None, "status": None, "ts": None, "error": str(e)}
+                    self.bms = {"devices": {}, "ts": None, "error": str(e)}
             self.stop_event.wait(BMS_INTERVAL)
 
     # ------------------------------------------------------------ ui refresh
@@ -369,38 +428,51 @@ class PcsRealtimeMonitor(ctk.CTk):
                 pv = dict(self.pv)
                 bms = dict(self.bms)
 
+            # --- photovoltaic ---
+            pv_names = sorted(pv["devices"].keys())
+            if pv_names and pv_names != self.pv_rendered:
+                self.render_pv_cards(pv_names)
             if pv.get("error"):
-                self.lbl_pv_value.configure(text="--", text_color=COLOR_RED)
-                self.lbl_pv_name.configure(text="error")
-                self.lbl_pv_ts.configure(text=f"connection error: {pv['error'][:60]}", text_color=COLOR_RED)
+                self.lbl_pv_ts.configure(text=f"connection error: {pv['error'][:50]}", text_color=COLOR_RED)
+                for value in self.pv_cards.values():
+                    value.configure(text="--", text_color=COLOR_RED)
             else:
-                power = pv.get("power")
-                if power is not None:
-                    self.lbl_pv_value.configure(text=f"{power} kW", text_color=COLOR_GREEN)
-                else:
-                    self.lbl_pv_value.configure(text="--", text_color=COLOR_GREEN)
-                self.lbl_pv_name.configure(text=pv.get("name") or "PV system")
-                self.lbl_pv_ts.configure(text=("updated " + pv["ts"]) if pv.get("ts") else "waiting for data...",
+                self.lbl_pv_ts.configure(text="updated " + pv["ts"] if pv.get("ts") else "waiting for data...",
                                          text_color=COLOR_GRAY)
+                for name, value in self.pv_cards.items():
+                    power = pv["devices"].get(name)
+                    if power is not None:
+                        value.configure(text=f"{power} kW", text_color=COLOR_GREEN)
+                    else:
+                        value.configure(text="--", text_color=COLOR_GREEN)
 
+            # --- battery ---
+            bms_names = list(bms["devices"].keys())
+            if bms_names and bms_names != self.bms_rendered:
+                self.render_bms_cards(bms_names)
             if bms.get("error"):
-                self.lbl_bms_value.configure(text="--", text_color=COLOR_RED)
-                self.lbl_bms_status.configure(text="error")
-                self.lbl_bms_ts.configure(text=f"connection error: {bms['error'][:60]}", text_color=COLOR_RED)
-                self.progress.set(0)
+                self.lbl_bms_ts.configure(text=f"connection error: {bms['error'][:50]}", text_color=COLOR_RED)
+                for card in self.bms_cards.values():
+                    card["value"].configure(text="--", text_color=COLOR_RED)
+                    card["progress"].set(0)
+                    card["status"].configure(text="error")
             else:
-                soc = bms.get("soc")
-                if soc is not None:
-                    try:
-                        self.lbl_bms_value.configure(text=f"{float(soc):.1f}%", text_color=COLOR_GREEN)
-                        self.progress.set(max(0.0, min(float(soc) / 100.0, 1.0)))
-                    except Exception:
-                        self.lbl_bms_value.configure(text="--")
-                else:
-                    self.lbl_bms_value.configure(text="--", text_color=COLOR_GREEN)
-                self.lbl_bms_status.configure(text=f"BMS status: {bms.get('status')}" if bms.get("status") is not None else "BMS status: -")
-                self.lbl_bms_ts.configure(text=("updated " + bms["ts"]) if bms.get("ts") else "waiting for data...",
+                self.lbl_bms_ts.configure(text="updated " + bms["ts"] if bms.get("ts") else "waiting for data...",
                                           text_color=COLOR_GRAY)
+                for name, card in self.bms_cards.items():
+                    info = bms["devices"].get(name) or {}
+                    soc = info.get("soc")
+                    if soc is not None:
+                        try:
+                            card["value"].configure(text=f"{float(soc):.1f}%", text_color=COLOR_GREEN)
+                            card["progress"].set(max(0.0, min(float(soc) / 100.0, 1.0)))
+                        except Exception:
+                            card["value"].configure(text="--")
+                    else:
+                        card["value"].configure(text="--", text_color=COLOR_GREEN)
+                        card["progress"].set(0)
+                    status = BMS_STATUS_MAP.get(info.get("status"), "-")
+                    card["status"].configure(text=f"status: {status}")
         self.after(200, self.refresh_ui)
 
 
