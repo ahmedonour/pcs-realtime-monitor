@@ -50,7 +50,7 @@ COLOR_RED = "#e65454"
 COLOR_GRAY = "#8a8aa3"
 COLOR_INFO = "#54a0e8"
 
-BMS_STATUS_MAP = {1: "Standby", 2: "Running", 3: "Charging", 4: "Discharging"}
+BMS_STATUS_MAP = {1: "Standby", 2: "Shutdown", 3: "Charging", 4: "Discharging"}
 
 
 def deep_find(obj, key):
