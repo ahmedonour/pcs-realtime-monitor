@@ -36,6 +36,7 @@ DEFAULT_PASSWORD = "aiWatt+0"
 PV_QUERY = "purpose=2&pageSize=12&page=1"
 BMS_DEVICE_IDS = [2, 3]
 BMS_INTERVAL = 5.0  # seconds (matches the extension)
+RECONNECT_MAX_BACKOFF = 30.0  # seconds between retries while disconnected
 
 SEQUENCE_STEPS = [
     ("pcs_device_stop", "Stop device"),
@@ -93,6 +94,10 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.bms = {"devices": {}, "ts": None, "error": None}
         self.stop_event = threading.Event()
         self.workers = []
+        self.login_lock = threading.Lock()
+        self.conn = {"status": "idle", "error": None}
+        self.tray_icon = None
+        self.run_in_background = tk.BooleanVar(value=True)
 
         self.sequence_running = False
         self.sequence_status = {}
@@ -116,6 +121,15 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.after(200, self.refresh_ui)
 
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        if sys.platform == "darwin":
+            try:
+                self.createcommand("tk::mac::Quit", self.on_quit_command)
+                self.createcommand("tk::mac::ReopenApplication", self.show_window)
+            except Exception:
+                pass
+        self._setup_tray()
+
     # ------------------------------------------------------------ window icon
     def _window_icon(self):
         try:
@@ -124,6 +138,71 @@ class PcsRealtimeMonitor(ctk.CTk):
                 self.iconphoto(True, self._icon_image)
         except Exception:
             pass
+
+    # ------------------------------------------------------------ system tray / background
+    def _setup_tray(self):
+        try:
+            import pystray
+            from PIL import Image as PILImage
+        except Exception:
+            self.tray_icon = None
+            return
+        try:
+            image = PILImage.open(str(ICON_FILE)) if ICON_FILE.exists() else None
+        except Exception:
+            image = None
+        if image is None:
+            image = PILImage.new("RGB", (64, 64), (76, 195, 138))
+        menu = pystray.Menu(
+            pystray.MenuItem("Show dashboard", self._tray_show, default=True),
+            pystray.MenuItem("Quit PCS Monitor", self._tray_quit),
+        )
+        self.tray_icon = pystray.Icon("pcs_realtime_monitor", image, "PCS Realtime Monitor", menu)
+        try:
+            self.tray_icon.run_detached()
+        except Exception:
+            self.tray_icon = None
+
+    def _tray_show(self, icon, item):
+        self.after(0, self.show_window)
+
+    def _tray_quit(self, icon, item):
+        self.after(0, self._quit)
+
+    def show_window(self):
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+
+    def on_close(self):
+        self._handle_quit_or_background()
+
+    def on_quit_command(self):
+        self._handle_quit_or_background()
+
+    def _handle_quit_or_background(self):
+        if not self.winfo_viewable():
+            self._quit()
+        elif self.run_in_background.get() and self.tray_icon is not None:
+            self.withdraw()
+            try:
+                self.tray_icon.notify(
+                    "PCS Monitor is still running in the background. Use the menu bar icon to open it again.",
+                    "PCS Realtime Monitor",
+                )
+            except Exception:
+                pass
+        else:
+            self._quit()
+
+    def _quit(self):
+        self.stop_polling()
+        if self.tray_icon is not None:
+            try:
+                self.tray_icon.stop()
+            except Exception:
+                pass
+        self.destroy()
 
     # ------------------------------------------------------------ login view
     def build_login(self):
@@ -282,6 +361,13 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_pv_power_status = ctk.CTkLabel(ctl, text="", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY)
         self.lbl_pv_power_status.pack(anchor="w", padx=16, pady=(0, 12))
 
+        self.chk_background = ctk.CTkCheckBox(
+            ctl, text="Run in background when the window is closed",
+            variable=self.run_in_background, text_color=COLOR_GRAY,
+            font=ctk.CTkFont(size=11), fg_color=COLOR_GREEN, hover_color="#3aa372",
+        )
+        self.chk_background.pack(anchor="w", padx=16, pady=(0, 14))
+
     def show_dashboard(self):
         self.current_view = "dashboard"
         self.login_view.grid_remove()
@@ -295,6 +381,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         with self.lock:
             self.pv = {"devices": {}, "ts": None, "error": None}
             self.bms = {"devices": {}, "ts": None, "error": None}
+            self.conn = {"status": "idle", "error": None}
 
     # ------------------------------------------------------------ cards
     def render_pv_cards(self, names):
@@ -346,28 +433,54 @@ class PcsRealtimeMonitor(ctk.CTk):
         })
 
     def login(self):
-        url = f"{self.settings['base_url']}/v1/user/login"
-        resp = self.session.post(
-            url,
-            json={"username": self.settings["username"], "password": self.settings["password"]},
-            timeout=(5, 10),
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("code") not in (0, None):
-            raise RuntimeError(f"code={data.get('code')} message={data.get('message')}")
-        self.token = data["data"]["token"]
+        with self.login_lock:
+            if self.token:
+                return self.token
+            url = f"{self.settings['base_url']}/v1/user/login"
+            resp = self.session.post(
+                url,
+                json={"username": self.settings["username"], "password": self.settings["password"]},
+                timeout=(5, 10),
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("code") not in (0, None):
+                raise RuntimeError(f"code={data.get('code')} message={data.get('message')}")
+            self.token = data["data"]["token"]
+            return self.token
+
+    def _headers(self, sse=False):
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json;charset=utf-8",
+        }
+        if sse:
+            headers["Accept"] = "text/event-stream"
+            headers["Cache-Control"] = "no-cache"
+        return headers
+
+    def _set_conn(self, status, error=None):
+        with self.lock:
+            self.conn = {"status": status, "error": error}
+
+    @staticmethod
+    def _is_auth_error(exc):
+        if isinstance(exc, requests.HTTPError) and exc.response is not None:
+            if exc.response.status_code in (401, 403):
+                return True
+        msg = str(exc).lower()
+        return any(k in msg for k in ("401", "403", "unauthorized", "token expired"))
 
     # ------------------------------------------------------------ control
     def _api_patch(self, path, body):
         if not self.token:
             self.login()
         url = f"{self.settings['base_url']}{path}"
-        headers = {
-            "Authorization": f"Bearer {self.token}",
-            "Content-Type": "application/json;charset=utf-8",
-        }
-        resp = self.session.patch(url, headers=headers, json=body, timeout=(5, 10))
+        resp = self.session.patch(url, headers=self._headers(), json=body, timeout=(5, 10))
+        if resp.status_code in (401, 403):
+            self.token = None
+            self.login()
+            resp = self.session.patch(url, headers=self._headers(), json=body, timeout=(5, 10))
         resp.raise_for_status()
         data = resp.json()
         if data.get("code") not in (0, None):
@@ -462,27 +575,29 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.workers = []
 
     def pv_worker(self):
+        backoff = 1.0
         while not self.stop_event.is_set():
             try:
                 if not self.token:
                     self.login()
                 url = f"{self.settings['base_url']}/v1/sse/photovoltaic?{PV_QUERY}"
-                headers = {
-                    "Authorization": f"Bearer {self.token}",
-                    "Accept": "text/event-stream",
-                    "Cache-Control": "no-cache",
-                    "Content-Type": "application/json;charset=utf-8",
-                }
+                headers = self._headers(sse=True)
                 devices = {}
                 for event in self.read_sse_events(url, headers):
                     devices.update(self.parse_pv_event(event))
                 if devices:
                     with self.lock:
                         self.pv = {"devices": devices, "ts": datetime.now().strftime("%H:%M:%S"), "error": None}
+                    self._set_conn("connected")
+                    backoff = 1.0
             except Exception as e:
                 with self.lock:
                     self.pv["error"] = str(e)
-            self.stop_event.wait(1.0)
+                self._set_conn("error", str(e))
+                if self._is_auth_error(e):
+                    self.token = None
+                backoff = min(backoff * 2, RECONNECT_MAX_BACKOFF)
+            self.stop_event.wait(backoff)
 
     def read_sse_events(self, url, headers, timeout=8.0, max_events=100):
         resp = self.session.get(url, headers=headers, stream=True, timeout=(10, None))
@@ -551,6 +666,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         return devices
 
     def bms_worker(self):
+        backoff = 1.0
         while not self.stop_event.is_set():
             try:
                 if not self.token:
@@ -558,16 +674,13 @@ class PcsRealtimeMonitor(ctk.CTk):
                 devices = {}
                 for did in self.settings.get("device_ids", BMS_DEVICE_IDS):
                     url = f"{self.settings['base_url']}/v1/history-data?page=1&page-size=1"
-                    headers = {
-                        "Authorization": f"Bearer {self.token}",
-                        "Content-Type": "application/json;charset=utf-8",
-                    }
                     resp = self.session.post(
                         url,
-                        headers=headers,
+                        headers=self._headers(),
                         json={"device_id": did, "device_type": 2, "fields": ["bms_running_status", "bms_soc"]},
                         timeout=(5, 10),
                     )
+                    resp.raise_for_status()
                     data = resp.json()
                     items = (data.get("data") or {}).get("list") or []
                     if items:
@@ -579,10 +692,16 @@ class PcsRealtimeMonitor(ctk.CTk):
                 if devices:
                     with self.lock:
                         self.bms = {"devices": devices, "ts": datetime.now().strftime("%H:%M:%S"), "error": None}
+                    self._set_conn("connected")
+                    backoff = 1.0
             except Exception as e:
                 with self.lock:
                     self.bms = {"devices": {}, "ts": None, "error": str(e)}
-            self.stop_event.wait(BMS_INTERVAL)
+                self._set_conn("error", str(e))
+                if self._is_auth_error(e):
+                    self.token = None
+                backoff = min(backoff * 2, RECONNECT_MAX_BACKOFF)
+            self.stop_event.wait(backoff if backoff != 1.0 else BMS_INTERVAL)
 
     # ------------------------------------------------------------ ui refresh
     def refresh_ui(self):
@@ -591,6 +710,15 @@ class PcsRealtimeMonitor(ctk.CTk):
                 pv = dict(self.pv)
                 bms = dict(self.bms)
                 seq = dict(self.sequence_status)
+                conn = dict(self.conn)
+
+            # --- header connection status ---
+            if conn["status"] == "error":
+                self.lbl_conn.configure(text="reconnecting...", text_color=COLOR_RED)
+            elif conn["status"] == "connected":
+                self.lbl_conn.configure(text="connected", text_color=COLOR_GREEN)
+            else:
+                self.lbl_conn.configure(text="connecting...", text_color=COLOR_INFO)
 
             # --- control: sequence status ---
             state = "disabled" if self.sequence_running else "normal"
