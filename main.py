@@ -289,7 +289,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.dashboard_view.grid_rowconfigure(1, weight=1)
 
         header = ctk.CTkFrame(self.dashboard_view, fg_color="transparent")
-        header.grid(row=0, column=0, sticky="ew", padx=24, pady=(18, 8))
+        header.grid(row=0, column=0, sticky="ew", padx=24, pady=(8, 4))
         header.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(header, text="PCS Realtime Monitor", font=ctk.CTkFont(size=18, weight="bold")).pack(side="left")
         self.lbl_conn = ctk.CTkLabel(header, text="connected", font=ctk.CTkFont(size=11), text_color=COLOR_GREEN)
@@ -299,7 +299,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.btn_logout.pack(side="right")
 
         self.content = ctk.CTkScrollableFrame(self.dashboard_view, fg_color="transparent")
-        self.content.grid(row=1, column=0, sticky="nsew", padx=20, pady=4)
+        self.content.grid(row=1, column=0, sticky="nsew", padx=20, pady=(2, 0))
         self.content.grid_columnconfigure(0, weight=1)
 
         self.build_control_section()
@@ -314,11 +314,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_pg_ts.pack(side="right")
 
         self.power_group_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.power_group_container.grid(row=2, column=0, sticky="ew", pady=(6, 4))
+        self.power_group_container.grid(row=2, column=0, sticky="ew", pady=(4, 2))
 
         # Photovoltaic section
         pv_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        pv_head.grid(row=3, column=0, sticky="ew", pady=(16, 0))
+        pv_head.grid(row=3, column=0, sticky="ew", pady=(8, 0))
         pv_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(pv_head, text="PHOTOVOLTAIC DEVICES", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
@@ -326,11 +326,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_pv_ts.pack(side="right")
 
         self.pv_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.pv_container.grid(row=4, column=0, sticky="ew", pady=(6, 4))
+        self.pv_container.grid(row=4, column=0, sticky="ew", pady=(4, 2))
 
         # Battery section
         bms_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        bms_head.grid(row=5, column=0, sticky="ew", pady=(16, 0))
+        bms_head.grid(row=5, column=0, sticky="ew", pady=(8, 0))
         bms_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(bms_head, text="BATTERY (BMS)", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
@@ -338,53 +338,53 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_bms_ts.pack(side="right")
 
         self.bms_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.bms_container.grid(row=6, column=0, sticky="ew", pady=(6, 4))
+        self.bms_container.grid(row=6, column=0, sticky="ew", pady=(4, 2))
 
     def build_control_section(self):
         ctl = ctk.CTkFrame(self.content, corner_radius=12, fg_color="#1c1d30")
-        ctl.grid(row=0, column=0, sticky="ew", pady=(0, 14))
+        ctl.grid(row=0, column=0, sticky="ew", pady=(0, 8))
 
         ctk.CTkLabel(ctl, text="CONTROL", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_GRAY).pack(anchor="w", padx=16, pady=(12, 4))
+                     text_color=COLOR_GRAY).pack(anchor="w", padx=16, pady=(8, 2))
 
         seq_row = ctk.CTkFrame(ctl, fg_color="transparent")
-        seq_row.pack(fill="x", padx=16, pady=(0, 4))
-        ctk.CTkLabel(seq_row, text="Run sequence", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left", padx=(0, 12))
-        self.btn_seq_both = ctk.CTkButton(seq_row, text="Both batteries", width=120, height=30, corner_radius=8,
+        seq_row.pack(fill="x", padx=16, pady=(0, 2))
+        ctk.CTkLabel(seq_row, text="Run sequence", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left", padx=(0, 12))
+        self.btn_seq_both = ctk.CTkButton(seq_row, text="Both batteries", width=110, height=26, corner_radius=8,
                                           command=lambda: self.start_sequence(list(self.settings["device_ids"])))
         self.btn_seq_both.pack(side="left", padx=(0, 8))
         self.btn_seq_bms = {}
         for did in self.settings["device_ids"]:
-            btn = ctk.CTkButton(seq_row, text=f"BMS {did}", width=90, height=30, corner_radius=8,
+            btn = ctk.CTkButton(seq_row, text=f"BMS {did}", width=80, height=26, corner_radius=8,
                                 command=lambda d=did: self.start_sequence([d]))
             btn.pack(side="left", padx=(0, 8))
             self.btn_seq_bms[did] = btn
 
-        self.lbl_seq_status = ctk.CTkLabel(ctl, text="idle", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY)
-        self.lbl_seq_status.pack(anchor="w", padx=16, pady=(0, 8))
+        self.lbl_seq_status = ctk.CTkLabel(ctl, text="idle", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_seq_status.pack(anchor="w", padx=16, pady=(0, 2))
 
-        ctk.CTkFrame(ctl, height=1, fg_color="#2c2d45").pack(fill="x", padx=16, pady=(0, 8))
+        ctk.CTkFrame(ctl, height=1, fg_color="#2c2d45").pack(fill="x", padx=16, pady=(0, 4))
 
         pv_row = ctk.CTkFrame(ctl, fg_color="transparent")
-        pv_row.pack(fill="x", padx=16, pady=(0, 4))
-        ctk.CTkLabel(pv_row, text="PV power (run_power)", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left", padx=(0, 12))
-        self.ent_pv_power = ctk.CTkEntry(pv_row, width=110, height=30, corner_radius=8)
+        pv_row.pack(fill="x", padx=16, pady=(0, 2))
+        ctk.CTkLabel(pv_row, text="PV power (run_power)", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left", padx=(0, 12))
+        self.ent_pv_power = ctk.CTkEntry(pv_row, width=100, height=26, corner_radius=8)
         self.ent_pv_power.insert(0, "100")
         self.ent_pv_power.pack(side="left", padx=(0, 8))
         ctk.CTkLabel(pv_row, text="kW", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY).pack(side="left", padx=(0, 12))
-        self.btn_pv_power = ctk.CTkButton(pv_row, text="Apply", width=90, height=30, corner_radius=8,
+        self.btn_pv_power = ctk.CTkButton(pv_row, text="Apply", width=80, height=26, corner_radius=8,
                                           command=self.apply_pv_power)
         self.btn_pv_power.pack(side="left")
 
-        self.lbl_pv_power_status = ctk.CTkLabel(ctl, text="", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY)
-        self.lbl_pv_power_status.pack(anchor="w", padx=16, pady=(0, 12))
+        self.lbl_pv_power_status = ctk.CTkLabel(ctl, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_pv_power_status.pack(anchor="w", padx=16, pady=(0, 2))
 
         self.chk_background = ctk.CTkCheckBox(
             ctl, text="Run in background when the window is closed",
             variable=self.run_in_background, text_color=COLOR_GRAY,
-            font=ctk.CTkFont(size=11), fg_color=COLOR_GREEN, hover_color="#3aa372",
+            font=ctk.CTkFont(size=10), fg_color=COLOR_GREEN, hover_color="#3aa372",
         )
-        self.chk_background.pack(anchor="w", padx=16, pady=(0, 14))
+        self.chk_background.pack(anchor="w", padx=16, pady=(0, 6))
 
     def show_dashboard(self):
         self.current_view = "dashboard"
@@ -409,15 +409,15 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.power_group_cards = {}
         for i, name in enumerate(names):
             card = ctk.CTkFrame(self.power_group_container, corner_radius=12, fg_color="#1f2035")
-            card.grid(row=0, column=i, sticky="ew", padx=6, pady=6)
+            card.grid(row=0, column=i, sticky="ew", padx=6, pady=4)
             self.power_group_container.grid_columnconfigure(i, weight=1, uniform="pg")
-            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=13, weight="bold"),
-                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(12, 2))
-            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=30, weight="bold"), text_color=COLOR_GREEN)
+            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
+                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
             value.pack(anchor="w", padx=14)
-            caption = ctk.CTkLabel(card, text="total apparent power (kW)", font=ctk.CTkFont(size=10),
+            caption = ctk.CTkLabel(card, text="total active power (kW)", font=ctk.CTkFont(size=10),
                                    text_color=COLOR_GRAY)
-            caption.pack(anchor="w", padx=14, pady=(0, 12))
+            caption.pack(anchor="w", padx=14, pady=(2, 8))
             self.power_group_cards[name] = {"value": value, "caption": caption}
         self.power_group_rendered = list(names)
 
@@ -429,13 +429,13 @@ class PcsRealtimeMonitor(ctk.CTk):
         for i, name in enumerate(names):
             card = ctk.CTkFrame(self.pv_container, corner_radius=12, fg_color="#1f2035")
             r, c = divmod(i, cols)
-            card.grid(row=r, column=c, sticky="ew", padx=6, pady=6)
+            card.grid(row=r, column=c, sticky="ew", padx=6, pady=4)
             self.pv_container.grid_columnconfigure(c, weight=1, uniform="pv")
-            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=13, weight="bold"),
-                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(12, 2))
-            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=30, weight="bold"), text_color=COLOR_GREEN)
+            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
+                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
             value.pack(anchor="w", padx=14)
-            ctk.CTkLabel(card, text="kilowatts (kW)", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY).pack(anchor="w", padx=14, pady=(0, 12))
+            ctk.CTkLabel(card, text="kilowatts (kW)", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY).pack(anchor="w", padx=14, pady=(2, 8))
             self.pv_cards[name] = value
         self.pv_rendered = list(names)
 
@@ -447,17 +447,17 @@ class PcsRealtimeMonitor(ctk.CTk):
         for i, name in enumerate(names):
             card = ctk.CTkFrame(self.bms_container, corner_radius=12, fg_color="#1f2035")
             r, c = divmod(i, cols)
-            card.grid(row=r, column=c, sticky="ew", padx=6, pady=6)
+            card.grid(row=r, column=c, sticky="ew", padx=6, pady=4)
             self.bms_container.grid_columnconfigure(c, weight=1, uniform="bms")
-            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=13, weight="bold"),
-                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(12, 2))
-            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=30, weight="bold"), text_color=COLOR_GREEN)
+            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
+                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
             value.pack(anchor="w", padx=14)
-            progress = ctk.CTkProgressBar(card, height=8, corner_radius=4, progress_color=COLOR_GREEN)
+            progress = ctk.CTkProgressBar(card, height=6, corner_radius=3, progress_color=COLOR_GREEN)
             progress.set(0)
-            progress.pack(fill="x", padx=14, pady=(8, 4))
+            progress.pack(fill="x", padx=14, pady=(6, 2))
             status = ctk.CTkLabel(card, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
-            status.pack(anchor="w", padx=14, pady=(0, 12))
+            status.pack(anchor="w", padx=14, pady=(0, 8))
             self.bms_cards[name] = {"value": value, "progress": progress, "status": status}
         self.bms_rendered = list(names)
 
@@ -654,7 +654,7 @@ class PcsRealtimeMonitor(ctk.CTk):
                 pcs_val = (device.get("pcs") or {}).get("pcs_total_active_power")
                 pcs[name] = pcs_val
             elif item.get("type") == 1:
-                meters[name] = device.get("total_apparent_power")
+                meters[name] = device.get("total_active")
 
     @staticmethod
     def merge_power_group(meters, pcs):
@@ -851,7 +851,7 @@ class PcsRealtimeMonitor(ctk.CTk):
                     widgets["caption"].configure(text="PCS total active power (kW)")
                 else:
                     apparent = info.get("apparent_power")
-                    widgets["caption"].configure(text="total apparent power (kW)")
+                    widgets["caption"].configure(text="total active power (kW)")
                     if apparent is not None:
                         widgets["value"].configure(text=f"{apparent} kW", text_color=COLOR_GREEN)
                     else:
