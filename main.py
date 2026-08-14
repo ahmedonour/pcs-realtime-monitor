@@ -315,6 +315,9 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.power_group_container = ctk.CTkFrame(self.content, fg_color="transparent")
         self.power_group_container.grid(row=2, column=0, sticky="ew", pady=(4, 2))
+        self.power_group_container.bind(
+            "<Configure>", lambda e: self._flow_cards(self.power_group_container,
+                                                      [c["card"] for c in self.power_group_cards.values()]))
 
         # Photovoltaic section
         pv_head = ctk.CTkFrame(self.content, fg_color="transparent")
@@ -327,6 +330,9 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.pv_container = ctk.CTkFrame(self.content, fg_color="transparent")
         self.pv_container.grid(row=4, column=0, sticky="ew", pady=(4, 2))
+        self.pv_container.bind(
+            "<Configure>", lambda e: self._flow_cards(self.pv_container,
+                                                      [c["card"] for c in self.pv_cards.values()]))
 
         # Battery section
         bms_head = ctk.CTkFrame(self.content, fg_color="transparent")
@@ -339,6 +345,9 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.bms_container = ctk.CTkFrame(self.content, fg_color="transparent")
         self.bms_container.grid(row=6, column=0, sticky="ew", pady=(4, 2))
+        self.bms_container.bind(
+            "<Configure>", lambda e: self._flow_cards(self.bms_container,
+                                                      [c["card"] for c in self.bms_cards.values()]))
 
     def build_control_section(self):
         ctl = ctk.CTkFrame(self.content, corner_radius=12, fg_color="#1c1d30")
@@ -403,14 +412,44 @@ class PcsRealtimeMonitor(ctk.CTk):
             self.conn = {"status": "idle", "error": None}
 
     # ------------------------------------------------------------ cards
+    def _flow_cards(self, parent, card_widgets, gap=12):
+        if getattr(self, "_flowing", False):
+            return
+        self._flowing = True
+        try:
+            parent.update_idletasks()
+            available = parent.winfo_width()
+            if available < 40:
+                available = 640
+            rows = []
+            row = []
+            row_w = 0
+            for w in card_widgets:
+                try:
+                    req = w.winfo_reqwidth()
+                except Exception:
+                    req = 200
+                if row and row_w + gap + req > available:
+                    rows.append(row)
+                    row = [w]
+                    row_w = req
+                else:
+                    row.append(w)
+                    row_w += (gap if len(row) > 1 else 0) + req
+            if row:
+                rows.append(row)
+            for r, row_items in enumerate(rows):
+                for c, w in enumerate(row_items):
+                    w.grid(row=r, column=c, sticky="w", padx=gap // 2, pady=4)
+        finally:
+            self._flowing = False
+
     def render_power_group_cards(self, names):
         for w in self.power_group_container.winfo_children():
             w.destroy()
         self.power_group_cards = {}
-        for i, name in enumerate(names):
+        for name in names:
             card = ctk.CTkFrame(self.power_group_container, corner_radius=12, fg_color="#1f2035")
-            card.grid(row=0, column=i, sticky="ew", padx=6, pady=4)
-            self.power_group_container.grid_columnconfigure(i, weight=1, uniform="pg")
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
                          text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
             value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
@@ -418,37 +457,31 @@ class PcsRealtimeMonitor(ctk.CTk):
             caption = ctk.CTkLabel(card, text="total active power (kW)", font=ctk.CTkFont(size=10),
                                    text_color=COLOR_GRAY)
             caption.pack(anchor="w", padx=14, pady=(2, 8))
-            self.power_group_cards[name] = {"value": value, "caption": caption}
+            self.power_group_cards[name] = {"card": card, "value": value, "caption": caption}
         self.power_group_rendered = list(names)
+        self._flow_cards(self.power_group_container, [c["card"] for c in self.power_group_cards.values()])
 
     def render_pv_cards(self, names):
         for w in self.pv_container.winfo_children():
             w.destroy()
         self.pv_cards = {}
-        cols = 3
-        for i, name in enumerate(names):
+        for name in names:
             card = ctk.CTkFrame(self.pv_container, corner_radius=12, fg_color="#1f2035")
-            r, c = divmod(i, cols)
-            card.grid(row=r, column=c, sticky="ew", padx=6, pady=4)
-            self.pv_container.grid_columnconfigure(c, weight=1, uniform="pv")
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
                          text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
             value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
             value.pack(anchor="w", padx=14)
             ctk.CTkLabel(card, text="kilowatts (kW)", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY).pack(anchor="w", padx=14, pady=(2, 8))
-            self.pv_cards[name] = value
+            self.pv_cards[name] = {"card": card, "value": value}
         self.pv_rendered = list(names)
+        self._flow_cards(self.pv_container, [c["card"] for c in self.pv_cards.values()])
 
     def render_bms_cards(self, names):
         for w in self.bms_container.winfo_children():
             w.destroy()
         self.bms_cards = {}
-        cols = 2
-        for i, name in enumerate(names):
+        for name in names:
             card = ctk.CTkFrame(self.bms_container, corner_radius=12, fg_color="#1f2035")
-            r, c = divmod(i, cols)
-            card.grid(row=r, column=c, sticky="ew", padx=6, pady=4)
-            self.bms_container.grid_columnconfigure(c, weight=1, uniform="bms")
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
                          text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
             value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
@@ -458,8 +491,9 @@ class PcsRealtimeMonitor(ctk.CTk):
             progress.pack(fill="x", padx=14, pady=(6, 2))
             status = ctk.CTkLabel(card, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
             status.pack(anchor="w", padx=14, pady=(0, 8))
-            self.bms_cards[name] = {"value": value, "progress": progress, "status": status}
+            self.bms_cards[name] = {"card": card, "value": value, "progress": progress, "status": status}
         self.bms_rendered = list(names)
+        self._flow_cards(self.bms_container, [c["card"] for c in self.bms_cards.values()])
 
     # ------------------------------------------------------------ api
     def read_settings(self):
@@ -866,12 +900,12 @@ class PcsRealtimeMonitor(ctk.CTk):
             else:
                 self.lbl_pv_ts.configure(text="updated " + pv["ts"] if pv.get("ts") else "waiting for data...",
                                          text_color=COLOR_GRAY)
-            for name, value in self.pv_cards.items():
+            for name, widgets in self.pv_cards.items():
                 power = pv["devices"].get(name)
                 if power is not None:
-                    value.configure(text=f"{power} kW", text_color=COLOR_GREEN)
+                    widgets["value"].configure(text=f"{power} kW", text_color=COLOR_GREEN)
                 else:
-                    value.configure(text="--", text_color=COLOR_GREEN)
+                    widgets["value"].configure(text="--", text_color=COLOR_GREEN)
 
             # --- battery ---
             bms_names = list(bms["devices"].keys())
