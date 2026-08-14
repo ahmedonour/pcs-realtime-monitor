@@ -96,8 +96,8 @@ class PcsRealtimeMonitor(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("PCS Realtime Monitor")
-        self.geometry("920x660")
-        self.minsize(760, 560)
+        self.geometry("1180x660")
+        self.minsize(1000, 560)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -154,6 +154,9 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.btn_download_log = None
         self.lbl_weather = None
         self.lbl_clock = None
+        self.lbl_bottom_weather = None
+        self.lbl_bottom_location = None
+        self.lbl_bottom_clock = None
 
         self._window_icon()
         self.build_login()
@@ -339,6 +342,16 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.build_control_section()
 
+        # --- bottom status bar ---
+        bar = ctk.CTkFrame(self.dashboard_view, fg_color="#1c1d30", corner_radius=0)
+        bar.grid(row=2, column=0, sticky="ew", pady=(6, 0))
+        self.lbl_bottom_weather = ctk.CTkLabel(bar, text="Weather: --", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
+        self.lbl_bottom_weather.pack(side="left", padx=(16, 8), pady=6)
+        self.lbl_bottom_location = ctk.CTkLabel(bar, text="Location: --", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
+        self.lbl_bottom_location.pack(side="left", padx=8, pady=6)
+        self.lbl_bottom_clock = ctk.CTkLabel(bar, text="", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
+        self.lbl_bottom_clock.pack(side="right", padx=16, pady=6)
+
         # Power group (left) + Photovoltaic (right) side by side
         middle = ctk.CTkFrame(self.content, fg_color="transparent")
         middle.grid(row=1, column=0, sticky="ew", pady=(4, 2))
@@ -444,19 +457,22 @@ class PcsRealtimeMonitor(ctk.CTk):
         )
         self.chk_background.pack(anchor="w", padx=16, pady=(0, 6))
 
-        # --- automation console panel (far right) ---
-        right = ctk.CTkFrame(ctl, width=300, fg_color="#171827")
-        right.grid(row=0, column=1, sticky="ns", padx=(12, 0))
+        # --- automation console panel (right) ---
+        right = ctk.CTkFrame(ctl, width=440, fg_color="#171827")
+        right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
         right.grid_propagate(False)
         right.grid_columnconfigure(0, weight=1)
+        right.grid_rowconfigure(1, weight=1)
 
         ctk.CTkLabel(right, text="AUTOMATION CONSOLE", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 4))
 
-        self.console = ctk.CTkTextbox(right, width=276, height=120, corner_radius=8,
-                                      fg_color="#101120", text_color=COLOR_GRAY, font=ctk.CTkFont(size=10))
-        self.console.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 6))
+        self.console = ctk.CTkTextbox(right, corner_radius=8,
+                                      fg_color="#101120", text_color="#c6c6dd", font=ctk.CTkFont(size=11))
+        self.console.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 6))
         self.console.configure(state="disabled")
+        self._log_console("Automation console ready. Press Start Automation to begin.",
+                          "#8a8aa3")
 
         self.btn_automation = ctk.CTkButton(right, text="Start Automation", height=28, corner_radius=8,
                                             fg_color=COLOR_GREEN, hover_color="#3aa372",
@@ -468,10 +484,10 @@ class PcsRealtimeMonitor(ctk.CTk):
                                               command=self.download_log)
         self.btn_download_log.grid(row=3, column=0, sticky="ew", padx=12, pady=(0, 4))
 
-        self.lbl_weather = ctk.CTkLabel(right, text="Weather: --", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_weather = ctk.CTkLabel(right, text="Weather: --", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
         self.lbl_weather.grid(row=4, column=0, sticky="w", padx=12, pady=(2, 0))
 
-        self.lbl_clock = ctk.CTkLabel(right, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_clock = ctk.CTkLabel(right, text="", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
         self.lbl_clock.grid(row=5, column=0, sticky="w", padx=12, pady=(0, 8))
 
     def show_dashboard(self):
@@ -1143,8 +1159,13 @@ class PcsRealtimeMonitor(ctk.CTk):
             except Exception:
                 pass
         self.location_cache = loc
+        city = (loc.get("city") or "").strip()
         if loc is None:
+            self._ui(self._set_location_label, "unknown")
             self._ui(self._set_weather_label, "Weather: unavailable")
+        else:
+            self._ui(self._set_location_label,
+                     city or f"{loc['lat']:.2f}, {loc['lon']:.2f}")
         return loc
 
     def _get_temperature(self):
@@ -1164,6 +1185,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             city = (loc.get("city") or "").strip()
             self._ui(self._set_weather_label,
                      f"Weather: {temp:.1f}°C {city}".strip())
+            self._ui(self._set_bottom_weather, f"Weather: {temp:.1f}°C")
             return temp
         except Exception:
             return None
@@ -1172,11 +1194,22 @@ class PcsRealtimeMonitor(ctk.CTk):
         if self.lbl_weather is not None:
             self.lbl_weather.configure(text=text)
 
+    def _set_bottom_weather(self, text):
+        if self.lbl_bottom_weather is not None:
+            self.lbl_bottom_weather.configure(text=text)
+
+    def _set_location_label(self, city):
+        if self.lbl_bottom_location is not None:
+            self.lbl_bottom_location.configure(text=f"Location: {city}")
+
     # ------------------------------------------------------------ ui refresh
     def refresh_ui(self):
         if self.current_view == "dashboard":
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if self.lbl_clock is not None:
-                self.lbl_clock.configure(text=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                self.lbl_clock.configure(text=now)
+            if self.lbl_bottom_clock is not None:
+                self.lbl_bottom_clock.configure(text=now)
             with self.lock:
                 pv = dict(self.pv)
                 bms = dict(self.bms)
