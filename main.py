@@ -304,39 +304,49 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.build_control_section()
 
-        # Power group section (GateMeter, ESS1 meter, ESS2 meter)
-        pg_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        pg_head.grid(row=1, column=0, sticky="ew")
+        # Power group (left) + Photovoltaic (right) side by side
+        middle = ctk.CTkFrame(self.content, fg_color="transparent")
+        middle.grid(row=1, column=0, sticky="ew", pady=(4, 2))
+        middle.grid_columnconfigure(0, weight=1)
+        middle.grid_columnconfigure(1, weight=1)
+
+        # Power group section (GateMeter, ESS1 master, ESS2 slave)
+        pg_col = ctk.CTkFrame(middle, fg_color="transparent")
+        pg_col.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+        pg_head = ctk.CTkFrame(pg_col, fg_color="transparent")
+        pg_head.pack(fill="x")
         pg_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(pg_head, text="POWER GROUP", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
         self.lbl_pg_ts = ctk.CTkLabel(pg_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
         self.lbl_pg_ts.pack(side="right")
 
-        self.power_group_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.power_group_container.grid(row=2, column=0, sticky="ew", pady=(4, 2))
+        self.power_group_container = ctk.CTkFrame(pg_col, fg_color="transparent")
+        self.power_group_container.pack(fill="x", pady=(4, 0))
         self.power_group_container.bind(
             "<Configure>", lambda e: self._flow_cards(self.power_group_container,
                                                       [c["card"] for c in self.power_group_cards.values()]))
 
         # Photovoltaic section
-        pv_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        pv_head.grid(row=3, column=0, sticky="ew", pady=(8, 0))
+        pv_col = ctk.CTkFrame(middle, fg_color="transparent")
+        pv_col.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+        pv_head = ctk.CTkFrame(pv_col, fg_color="transparent")
+        pv_head.pack(fill="x")
         pv_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(pv_head, text="PHOTOVOLTAIC DEVICES", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
         self.lbl_pv_ts = ctk.CTkLabel(pv_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
         self.lbl_pv_ts.pack(side="right")
 
-        self.pv_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.pv_container.grid(row=4, column=0, sticky="ew", pady=(4, 2))
+        self.pv_container = ctk.CTkFrame(pv_col, fg_color="transparent")
+        self.pv_container.pack(fill="x", pady=(4, 0))
         self.pv_container.bind(
             "<Configure>", lambda e: self._flow_cards(self.pv_container,
                                                       [c["card"] for c in self.pv_cards.values()]))
 
         # Battery section
         bms_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        bms_head.grid(row=5, column=0, sticky="ew", pady=(8, 0))
+        bms_head.grid(row=2, column=0, sticky="ew", pady=(8, 0))
         bms_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(bms_head, text="BATTERY (BMS)", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
@@ -344,7 +354,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_bms_ts.pack(side="right")
 
         self.bms_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.bms_container.grid(row=6, column=0, sticky="ew", pady=(4, 2))
+        self.bms_container.grid(row=3, column=0, sticky="ew", pady=(4, 2))
         self.bms_container.bind(
             "<Configure>", lambda e: self._flow_cards(self.bms_container,
                                                       [c["card"] for c in self.bms_cards.values()]))
