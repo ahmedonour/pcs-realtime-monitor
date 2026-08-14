@@ -71,6 +71,7 @@ PV_CHARGE_DEVICE_IDS = [1, 2, 3, 4, 6]
 COLOR_GREEN = "#4cc38a"
 COLOR_RED = "#e65454"
 COLOR_GRAY = "#8a8aa3"
+COLOR_LIGHT_GREEN = "#a8f0c0"
 COLOR_INFO = "#54a0e8"
 
 BMS_STATUS_MAP = {1: "Standby", 2: "Shutdown", 3: "Charging", 4: "Discharging"}
@@ -126,6 +127,15 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.sequence_status = {}
 
         self.automation = {"enabled": False, "pv_power": None, "last_action": None}
+        self.auto_settings = {
+            "interval": AUTOMATION_INTERVAL,
+            "step": AUTOMATION_STEP,
+            "pv_min": PV_POWER_MIN,
+            "pv_max": PV_POWER_MAX,
+            "hot_temp": HOT_TEMP,
+            "soc_high": SOC_HIGH,
+            "soc_recover": SOC_RECOVER,
+        }
         self._automation_ticking = False
         self.log_dir = LOG_DIR
         try:
@@ -458,7 +468,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.chk_background.pack(anchor="w", padx=16, pady=(0, 6))
 
         # --- automation console panel (right) ---
-        right = ctk.CTkFrame(ctl, width=440, fg_color="#171827")
+        right = ctk.CTkFrame(ctl, width=520, height=500, fg_color="#171827")
         right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
         right.grid_propagate(False)
         right.grid_columnconfigure(0, weight=1)
@@ -467,12 +477,13 @@ class PcsRealtimeMonitor(ctk.CTk):
         ctk.CTkLabel(right, text="AUTOMATION CONSOLE", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 4))
 
-        self.console = ctk.CTkTextbox(right, corner_radius=8,
-                                      fg_color="#101120", text_color="#c6c6dd", font=ctk.CTkFont(size=11))
+        self.console = ctk.CTkTextbox(right, height=300, corner_radius=8,
+                                      fg_color="#101120", text_color=COLOR_LIGHT_GREEN,
+                                      font=ctk.CTkFont(size=11))
         self.console.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 6))
         self.console.configure(state="disabled")
         self._log_console("Automation console ready. Press Start Automation to begin.",
-                          "#8a8aa3")
+                          COLOR_LIGHT_GREEN)
 
         self.btn_automation = ctk.CTkButton(right, text="Start Automation", height=28, corner_radius=8,
                                             fg_color=COLOR_GREEN, hover_color="#3aa372",
@@ -484,11 +495,24 @@ class PcsRealtimeMonitor(ctk.CTk):
                                               command=self.download_log)
         self.btn_download_log.grid(row=3, column=0, sticky="ew", padx=12, pady=(0, 4))
 
+        btn_row = ctk.CTkFrame(right, fg_color="transparent")
+        btn_row.grid(row=4, column=0, sticky="ew", padx=12, pady=(0, 4))
+        btn_row.grid_columnconfigure(0, weight=1)
+        btn_row.grid_columnconfigure(1, weight=1)
+        self.btn_settings = ctk.CTkButton(btn_row, text="Settings", height=28, corner_radius=8,
+                                          fg_color="#3a3a52", hover_color="#4a4a66",
+                                          command=self.open_settings)
+        self.btn_settings.grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self.btn_theme = ctk.CTkButton(btn_row, text="Theme: Dark", height=28, corner_radius=8,
+                                       fg_color="#3a3a52", hover_color="#4a4a66",
+                                       command=self.toggle_theme)
+        self.btn_theme.grid(row=0, column=1, sticky="ew", padx=(4, 0))
+
         self.lbl_weather = ctk.CTkLabel(right, text="Weather: --", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
-        self.lbl_weather.grid(row=4, column=0, sticky="w", padx=12, pady=(2, 0))
+        self.lbl_weather.grid(row=5, column=0, sticky="w", padx=12, pady=(2, 0))
 
         self.lbl_clock = ctk.CTkLabel(right, text="", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
-        self.lbl_clock.grid(row=5, column=0, sticky="w", padx=12, pady=(0, 8))
+        self.lbl_clock.grid(row=6, column=0, sticky="w", padx=12, pady=(0, 8))
 
     def show_dashboard(self):
         self.current_view = "dashboard"
@@ -727,6 +751,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             self._apply_pv_power_sync(run_power)
             self.after(0, lambda: self.lbl_pv_power_status.configure(
                 text=f"PV power set to {run_power} kW", text_color=COLOR_GREEN))
+            self.after(0, lambda: self._set_pv_entry(run_power))
         except Exception as e:
             self.after(0, lambda: self.lbl_pv_power_status.configure(
                 text=f"Failed: {str(e)[:60]}", text_color=COLOR_RED))
@@ -938,7 +963,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         except Exception:
             pass
 
-    def _log_console(self, msg, color=COLOR_GRAY):
+    def _log_console(self, msg, color=COLOR_LIGHT_GREEN):
         if self.console is None:
             return
         try:
@@ -975,9 +1000,14 @@ class PcsRealtimeMonitor(ctk.CTk):
                 pass
         return 100.0
 
+    def _set_pv_entry(self, value):
+        if self.ent_pv_power is not None:
+            self.ent_pv_power.delete(0, "end")
+            self.ent_pv_power.insert(0, f"{float(value):.1f}")
+
     def automation_worker(self):
         while not self.stop_event.is_set():
-            self.stop_event.wait(AUTOMATION_INTERVAL)
+            self.stop_event.wait(self.auto_settings["interval"])
             if self.stop_event.is_set():
                 break
             if not self.automation["enabled"]:
@@ -1006,9 +1036,10 @@ class PcsRealtimeMonitor(ctk.CTk):
             gate = abs(gate_raw)
             now = datetime.now()
             temp = self._get_temperature()
-            hot = HOT_START_HOUR <= now.hour <= HOT_END_HOUR and temp is not None and temp >= HOT_TEMP
-            high_soc = any(s >= SOC_HIGH for s in socs)
-            recover_soc = any(s <= SOC_RECOVER for s in socs)
+            s = self.auto_settings
+            hot = HOT_START_HOUR <= now.hour <= HOT_END_HOUR and temp is not None and temp >= s["hot_temp"]
+            high_soc = any(x >= s["soc_high"] for x in socs)
+            recover_soc = any(x <= s["soc_recover"] for x in socs)
             soc = max(socs) if socs else None
             current_pv = self.automation.get("pv_power") or self._read_pv_setting()
             target = current_pv
@@ -1019,10 +1050,10 @@ class PcsRealtimeMonitor(ctk.CTk):
                 rule = "rule3-soc-high"
                 if ess1 is not None and ess2 is not None:
                     if ess1 > ESS_DISCHARGE_RANGE[1] or ess2 > ESS_DISCHARGE_RANGE[1]:
-                        target = current_pv - AUTOMATION_STEP
+                        target = current_pv - s["step"]
                         action = "SOC>=95, decrease PV to discharge ESS"
                     elif ess1 < ESS_DISCHARGE_RANGE[0] or ess2 < ESS_DISCHARGE_RANGE[0]:
-                        target = current_pv + AUTOMATION_STEP
+                        target = current_pv + s["step"]
                         action = "SOC>=95, ESS below target, raise PV"
                     else:
                         action = "SOC>=95, ESS in -25..-15, hold"
@@ -1031,19 +1062,19 @@ class PcsRealtimeMonitor(ctk.CTk):
             elif recover_soc:
                 rule = "rule3-soc-recover"
                 if ess1 is not None and ess2 is not None and (ess1 < 0 or ess2 < 0):
-                    target = current_pv + AUTOMATION_STEP
+                    target = current_pv + s["step"]
                     action = "SOC<=85, increase PV to charge ESS"
                 else:
                     action = "SOC<=85, ESS positive, hold"
             elif hot:
                 rule = "rule2-hot"
-                target = max(PV_POWER_MIN, gate - 20.0)
+                target = max(s["pv_min"], gate - 20.0)
                 if ess1 is not None and ess2 is not None:
                     if ess1 < ESS_CHARGE_RANGE[0] or ess2 < ESS_CHARGE_RANGE[0]:
-                        target += AUTOMATION_STEP
+                        target += s["step"]
                         action = "hot, PV=gate-20, raise to keep ESS>=10"
                     elif ess1 > ESS_CHARGE_RANGE[1] or ess2 > ESS_CHARGE_RANGE[1]:
-                        target -= AUTOMATION_STEP
+                        target -= s["step"]
                         action = "hot, PV=gate-20, lower to keep ESS<=20"
                     else:
                         action = "hot, PV=gate-20, ESS in 10..20"
@@ -1051,18 +1082,19 @@ class PcsRealtimeMonitor(ctk.CTk):
                     action = "hot, PV=gate-20"
             elif gate_raw <= 0.0:
                 rule = "rule1-gate-negative"
-                target = max(PV_POWER_MIN, gate + 20.0)
+                target = max(s["pv_min"], gate + 20.0)
                 action = "gate<=0, PV=abs(gate)+20"
             else:
                 action = "gate>0, hold"
 
-            target = max(PV_POWER_MIN, min(PV_POWER_MAX, target))
+            target = max(s["pv_min"], min(s["pv_max"], target))
             applied = False
             if abs(target - current_pv) > 0.01:
                 try:
                     self._apply_pv_power_sync(round(target, 1))
                     applied = True
                     self.automation["pv_power"] = target
+                    self._ui(self._set_pv_entry, target)
                     self._ui(self._log_console,
                              f"{action} -> PV {current_pv:.1f} -> {target:.1f} kW",
                              COLOR_GREEN)
@@ -1201,6 +1233,56 @@ class PcsRealtimeMonitor(ctk.CTk):
     def _set_location_label(self, city):
         if self.lbl_bottom_location is not None:
             self.lbl_bottom_location.configure(text=f"Location: {city}")
+
+    def open_settings(self):
+        fields = [
+            ("interval", "Interval (seconds)"),
+            ("step", "PV step (kW)"),
+            ("pv_min", "PV min (kW)"),
+            ("pv_max", "PV max (kW)"),
+            ("hot_temp", "Hot temp threshold (°C)"),
+            ("soc_high", "SOC high (%)"),
+            ("soc_recover", "SOC recover (%)"),
+        ]
+        top = ctk.CTkToplevel(self)
+        top.title("Automation Settings")
+        top.geometry("360x360")
+        top.resizable(False, False)
+        entries = {}
+        for row, (key, label) in enumerate(fields):
+            ctk.CTkLabel(top, text=label, font=ctk.CTkFont(size=12)).grid(
+                row=row, column=0, sticky="w", padx=16, pady=(8, 0))
+            ent = ctk.CTkEntry(top, width=130, height=28, corner_radius=8)
+            ent.insert(0, str(self.auto_settings.get(key, "")))
+            ent.grid(row=row, column=1, sticky="e", padx=16, pady=(8, 0))
+            entries[key] = ent
+
+        def save():
+            try:
+                for key, ent in entries.items():
+                    self.auto_settings[key] = float(ent.get().strip())
+                self._log_console(
+                    f"Settings saved (interval {self.auto_settings['interval']}s, "
+                    f"step {self.auto_settings['step']} kW, hot temp {self.auto_settings['hot_temp']}°C)",
+                    COLOR_LIGHT_GREEN)
+                top.destroy()
+            except ValueError:
+                self._log_console("Settings: invalid number", COLOR_RED)
+
+        ctk.CTkButton(top, text="Save", width=140, height=30, corner_radius=8,
+                      command=save).grid(row=len(fields), column=0, columnspan=2, pady=18)
+
+    def toggle_theme(self):
+        if ctk.get_appearance_mode() == "dark":
+            ctk.set_appearance_mode("light")
+            if self.btn_theme is not None:
+                self.btn_theme.configure(text="Theme: Light")
+            self._log_console("Switched to light theme", COLOR_LIGHT_GREEN)
+        else:
+            ctk.set_appearance_mode("dark")
+            if self.btn_theme is not None:
+                self.btn_theme.configure(text="Theme: Dark")
+            self._log_console("Switched to dark theme", COLOR_LIGHT_GREEN)
 
     # ------------------------------------------------------------ ui refresh
     def refresh_ui(self):
