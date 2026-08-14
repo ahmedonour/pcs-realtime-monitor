@@ -36,6 +36,8 @@ DEFAULT_PASSWORD = "aiWatt+0"
 PV_QUERY = "purpose=2&pageSize=12&page=1"
 BMS_DEVICE_IDS = [2, 3]
 BMS_INTERVAL = 5.0  # seconds (matches the extension)
+POWER_GROUP_INTERVAL = 1.0  # seconds (power group is requested every 1s)
+POWER_GROUP_DEVICES = ["GateMeter", "ESS1 master", "ESS2 slave"]
 RECONNECT_MAX_BACKOFF = 30.0  # seconds between retries while disconnected
 
 SEQUENCE_STEPS = [
@@ -92,6 +94,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lock = threading.Lock()
         self.pv = {"devices": {}, "ts": None, "error": None}
         self.bms = {"devices": {}, "ts": None, "error": None}
+        self.power_group = {"devices": {}, "ts": None, "error": None}
         self.stop_event = threading.Event()
         self.workers = []
         self.login_lock = threading.Lock()
@@ -104,8 +107,10 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.pv_cards = {}
         self.bms_cards = {}
+        self.power_group_cards = {}
         self.pv_rendered = []
         self.bms_rendered = []
+        self.power_group_rendered = []
 
         self.btn_seq_both = None
         self.btn_seq_bms = {}
@@ -113,6 +118,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.ent_pv_power = None
         self.btn_pv_power = None
         self.lbl_pv_power_status = None
+        self.lbl_pg_ts = None
 
         self._window_icon()
         self.build_login()
@@ -298,9 +304,21 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.build_control_section()
 
+        # Power group section (GateMeter, ESS1 meter, ESS2 meter)
+        pg_head = ctk.CTkFrame(self.content, fg_color="transparent")
+        pg_head.grid(row=1, column=0, sticky="ew")
+        pg_head.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(pg_head, text="POWER GROUP", font=ctk.CTkFont(size=11, weight="bold"),
+                     text_color=COLOR_GRAY).pack(side="left")
+        self.lbl_pg_ts = ctk.CTkLabel(pg_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_pg_ts.pack(side="right")
+
+        self.power_group_container = ctk.CTkFrame(self.content, fg_color="transparent")
+        self.power_group_container.grid(row=2, column=0, sticky="ew", pady=(6, 4))
+
         # Photovoltaic section
         pv_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        pv_head.grid(row=1, column=0, sticky="ew")
+        pv_head.grid(row=3, column=0, sticky="ew", pady=(16, 0))
         pv_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(pv_head, text="PHOTOVOLTAIC DEVICES", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
@@ -308,11 +326,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_pv_ts.pack(side="right")
 
         self.pv_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.pv_container.grid(row=2, column=0, sticky="ew", pady=(6, 4))
+        self.pv_container.grid(row=4, column=0, sticky="ew", pady=(6, 4))
 
         # Battery section
         bms_head = ctk.CTkFrame(self.content, fg_color="transparent")
-        bms_head.grid(row=3, column=0, sticky="ew", pady=(16, 0))
+        bms_head.grid(row=5, column=0, sticky="ew", pady=(16, 0))
         bms_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(bms_head, text="BATTERY (BMS)", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(side="left")
@@ -320,7 +338,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_bms_ts.pack(side="right")
 
         self.bms_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.bms_container.grid(row=4, column=0, sticky="ew", pady=(6, 4))
+        self.bms_container.grid(row=6, column=0, sticky="ew", pady=(6, 4))
 
     def build_control_section(self):
         ctl = ctk.CTkFrame(self.content, corner_radius=12, fg_color="#1c1d30")
@@ -381,9 +399,28 @@ class PcsRealtimeMonitor(ctk.CTk):
         with self.lock:
             self.pv = {"devices": {}, "ts": None, "error": None}
             self.bms = {"devices": {}, "ts": None, "error": None}
+            self.power_group = {"devices": {}, "ts": None, "error": None}
             self.conn = {"status": "idle", "error": None}
 
     # ------------------------------------------------------------ cards
+    def render_power_group_cards(self, names):
+        for w in self.power_group_container.winfo_children():
+            w.destroy()
+        self.power_group_cards = {}
+        for i, name in enumerate(names):
+            card = ctk.CTkFrame(self.power_group_container, corner_radius=12, fg_color="#1f2035")
+            card.grid(row=0, column=i, sticky="ew", padx=6, pady=6)
+            self.power_group_container.grid_columnconfigure(i, weight=1, uniform="pg")
+            ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=13, weight="bold"),
+                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(12, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=30, weight="bold"), text_color=COLOR_GREEN)
+            value.pack(anchor="w", padx=14)
+            caption = ctk.CTkLabel(card, text="total apparent power (kVA)", font=ctk.CTkFont(size=10),
+                                   text_color=COLOR_GRAY)
+            caption.pack(anchor="w", padx=14, pady=(0, 12))
+            self.power_group_cards[name] = {"value": value, "caption": caption}
+        self.power_group_rendered = list(names)
+
     def render_pv_cards(self, names):
         for w in self.pv_container.winfo_children():
             w.destroy()
@@ -565,7 +602,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.stop_event.clear()
         if self.workers:
             return
-        for target in (self.pv_worker, self.bms_worker):
+        for target in (self.power_group_worker, self.pv_worker, self.bms_worker):
             t = threading.Thread(target=target, daemon=True)
             t.start()
             self.workers.append(t)
@@ -573,6 +610,61 @@ class PcsRealtimeMonitor(ctk.CTk):
     def stop_polling(self):
         self.stop_event.set()
         self.workers = []
+
+    def power_group_worker(self):
+        backoff = 1.0
+        while not self.stop_event.is_set():
+            try:
+                if not self.token:
+                    self.login()
+                url = f"{self.settings['base_url']}/v1/sse/power-group"
+                headers = self._headers(sse=True)
+                meters = {}
+                pcs = {}
+                for event in self.read_sse_events(url, headers, timeout=POWER_GROUP_INTERVAL):
+                    self.collect_power_group_event(event, meters, pcs)
+                devices = self.merge_power_group(meters, pcs)
+                if devices:
+                    with self.lock:
+                        self.power_group = {"devices": devices, "ts": datetime.now().strftime("%H:%M:%S"), "error": None}
+                    self._set_conn("connected")
+                    backoff = 1.0
+            except Exception as e:
+                with self.lock:
+                    self.power_group["error"] = str(e)
+                self._set_conn("error", str(e))
+                if self._is_auth_error(e):
+                    self.token = None
+                backoff = min(backoff * 2, RECONNECT_MAX_BACKOFF)
+            self.stop_event.wait(backoff if backoff != 1.0 else POWER_GROUP_INTERVAL)
+
+    @staticmethod
+    def collect_power_group_event(event, meters, pcs):
+        items = event.get("list") if isinstance(event, dict) else event
+        if not isinstance(items, list):
+            items = [event]
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            name = item.get("name")
+            if not name:
+                continue
+            device = item.get("device") or {}
+            if item.get("type") == 2:
+                pcs_val = (device.get("pcs") or {}).get("pcs_total_apparent_power")
+                pcs[name] = pcs_val
+            elif item.get("type") == 1:
+                meters[name] = device.get("total_apparent_power")
+
+    @staticmethod
+    def merge_power_group(meters, pcs):
+        devices = {name: {"apparent_power": value, "pcs_apparent_power": None} for name, value in meters.items()}
+        for name, value in pcs.items():
+            if name in devices:
+                devices[name]["pcs_apparent_power"] = value
+            else:
+                devices[name] = {"apparent_power": None, "pcs_apparent_power": value}
+        return devices
 
     def pv_worker(self):
         backoff = 1.0
@@ -740,6 +832,30 @@ class PcsRealtimeMonitor(ctk.CTk):
                                               text_color=COLOR_RED if failed else COLOR_INFO)
             else:
                 self.lbl_seq_status.configure(text="idle", text_color=COLOR_GRAY)
+
+            # --- power group ---
+            pg = dict(self.power_group)
+            pg_names = [n for n in POWER_GROUP_DEVICES if n in pg["devices"]]
+            if pg_names and pg_names != self.power_group_rendered:
+                self.render_power_group_cards(pg_names)
+            if pg.get("error"):
+                self.lbl_pg_ts.configure(text=f"connection error: {pg['error'][:50]}", text_color=COLOR_RED)
+            else:
+                self.lbl_pg_ts.configure(text="updated " + pg["ts"] if pg.get("ts") else "waiting for data...",
+                                         text_color=COLOR_GRAY)
+            for name, widgets in self.power_group_cards.items():
+                info = pg["devices"].get(name) or {}
+                pcs_power = info.get("pcs_apparent_power")
+                if pcs_power is not None:
+                    widgets["value"].configure(text=f"{pcs_power} kVA", text_color=COLOR_GREEN)
+                    widgets["caption"].configure(text="PCS total apparent power (kVA)")
+                else:
+                    apparent = info.get("apparent_power")
+                    widgets["caption"].configure(text="total apparent power (kVA)")
+                    if apparent is not None:
+                        widgets["value"].configure(text=f"{apparent} kVA", text_color=COLOR_GREEN)
+                    else:
+                        widgets["value"].configure(text="--", text_color=COLOR_GREEN)
 
             # --- photovoltaic ---
             pv_names = sorted(pv["devices"].keys())
