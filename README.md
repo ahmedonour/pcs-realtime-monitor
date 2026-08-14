@@ -78,7 +78,7 @@ The **CONTROL** section evaluates rule-based PV power adjustments every 30 secon
 
 1. **Rule 3 – Battery SOC** (highest priority)
    - Any BMS SOC ≥ 95% → decrease PV power in 5 kW steps until ESS1/ESS2 PCS active power is inside **−25 … −15 kW** (discharging); if it drops below −25 kW, raise PV instead.
-   - ESS1 **or** ESS2 power is negative (discharging), regardless of the time of day or the hot window → increase PV power in 5 kW steps to drive both ESS units to the positive side and into charging. It keeps raising PV even after they turn positive, and only stops once any BMS reaches 95% SOC; from there the 95% rule takes over and lowers PV again.
+   - Any BMS SOC ≤ 85% → increase PV power in 5 kW steps while the ESS is charging (negative power), until ESS power becomes positive.
 2. **Rule 2 – Hot window** – between 10:00 and 18:00 with outside temperature ≥ 35 °C: set PV power = **|GateMeter| − 20 kW**, nudging up/down in 5 kW steps to keep ESS1/ESS2 PCS power inside **10–20 kW**.
 3. **Rule 1 – Gate meter negative** – GateMeter ≤ 0: set PV power = **|GateMeter| + 20 kW**.
 

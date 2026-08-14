@@ -149,7 +149,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.sequence_running = False
         self.sequence_status = {}
 
-        self.automation = {"enabled": False, "pv_power": None, "last_action": None, "charging": False}
+        self.automation = {"enabled": False, "pv_power": None, "last_action": None}
         self.auto_settings = {
             "interval": AUTOMATION_INTERVAL,
             "step": AUTOMATION_STEP,
@@ -530,7 +530,6 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.sequence_running = False
         self.sequence_status = {}
         self.automation["enabled"] = False
-        self.automation["charging"] = False
         if self.btn_automation is not None:
             self.btn_automation.configure(
                 text="Start Automation", fg_color=COLOR_GREEN, hover_color=self.colors["accent_hover"])
@@ -986,7 +985,6 @@ class PcsRealtimeMonitor(ctk.CTk):
     def toggle_automation(self):
         if self.automation["enabled"]:
             self.automation["enabled"] = False
-            self.automation["charging"] = False
             if self.btn_automation is not None:
                 self.btn_automation.configure(
                     text="Start Automation", fg_color=COLOR_GREEN, hover_color=self.colors["accent_hover"])
@@ -1047,12 +1045,12 @@ class PcsRealtimeMonitor(ctk.CTk):
             s = self.auto_settings
             hot = HOT_START_HOUR <= now.hour <= HOT_END_HOUR and temp is not None and temp >= s["hot_temp"]
             high_soc = any(x >= s["soc_high"] for x in socs)
+            recover_soc = any(x <= s["soc_recover"] for x in socs)
             soc = max(socs) if socs else None
             current_pv = self.automation.get("pv_power") or self._read_pv_setting()
             target = current_pv
             rule = "idle"
             action = "no action"
-            charging = bool(self.automation.get("charging"))
 
             if high_soc:
                 rule = "rule3-soc-high"
@@ -1067,45 +1065,33 @@ class PcsRealtimeMonitor(ctk.CTk):
                         action = "SOC>=95, ESS in -25..-15, hold"
                 else:
                     action = "SOC>=95, waiting for ESS data"
-                charging = False
-            elif ess1 is not None and ess2 is not None and (ess1 < 0 or ess2 < 0):
-                charging = True
-                rule = "rule3-charge"
-                target = current_pv + s["step"]
-                action = "ESS negative, raise PV to charge until 95%"
-            elif charging:
-                if soc is not None and soc < s["soc_high"]:
-                    rule = "rule3-charge"
+            elif recover_soc:
+                rule = "rule3-soc-recover"
+                if ess1 is not None and ess2 is not None and (ess1 < 0 or ess2 < 0):
                     target = current_pv + s["step"]
-                    action = "charging, keep raising PV until 95%"
+                    action = "SOC<=85, increase PV to charge ESS"
                 else:
-                    charging = False
-                    action = "charging done"
-            else:
-                charging = False
-            self.automation["charging"] = charging
-
-            if not high_soc and not charging:
-                if hot:
-                    rule = "rule2-hot"
-                    target = max(s["pv_min"], gate - 20.0)
-                    if ess1 is not None and ess2 is not None:
-                        if ess1 < ESS_CHARGE_RANGE[0] or ess2 < ESS_CHARGE_RANGE[0]:
-                            target += s["step"]
-                            action = "hot, PV=gate-20, raise to keep ESS>=10"
-                        elif ess1 > ESS_CHARGE_RANGE[1] or ess2 > ESS_CHARGE_RANGE[1]:
-                            target -= s["step"]
-                            action = "hot, PV=gate-20, lower to keep ESS<=20"
-                        else:
-                            action = "hot, PV=gate-20, ESS in 10..20"
+                    action = "SOC<=85, ESS positive, hold"
+            elif hot:
+                rule = "rule2-hot"
+                target = max(s["pv_min"], gate - 20.0)
+                if ess1 is not None and ess2 is not None:
+                    if ess1 < ESS_CHARGE_RANGE[0] or ess2 < ESS_CHARGE_RANGE[0]:
+                        target += s["step"]
+                        action = "hot, PV=gate-20, raise to keep ESS>=10"
+                    elif ess1 > ESS_CHARGE_RANGE[1] or ess2 > ESS_CHARGE_RANGE[1]:
+                        target -= s["step"]
+                        action = "hot, PV=gate-20, lower to keep ESS<=20"
                     else:
-                        action = "hot, PV=gate-20"
-                elif gate_raw <= 0.0:
-                    rule = "rule1-gate-negative"
-                    target = max(s["pv_min"], gate + 20.0)
-                    action = "gate<=0, PV=abs(gate)+20"
+                        action = "hot, PV=gate-20, ESS in 10..20"
                 else:
-                    action = "gate>0, hold"
+                    action = "hot, PV=gate-20"
+            elif gate_raw <= 0.0:
+                rule = "rule1-gate-negative"
+                target = max(s["pv_min"], gate + 20.0)
+                action = "gate<=0, PV=abs(gate)+20"
+            else:
+                action = "gate>0, hold"
 
             target = max(s["pv_min"], min(s["pv_max"], target))
             applied = False
