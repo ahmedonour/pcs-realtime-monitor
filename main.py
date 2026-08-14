@@ -415,7 +415,7 @@ class PcsRealtimeMonitor(ctk.CTk):
                          text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(12, 2))
             value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=30, weight="bold"), text_color=COLOR_GREEN)
             value.pack(anchor="w", padx=14)
-            caption = ctk.CTkLabel(card, text="total apparent power (kVA)", font=ctk.CTkFont(size=10),
+            caption = ctk.CTkLabel(card, text="total apparent power (kW)", font=ctk.CTkFont(size=10),
                                    text_color=COLOR_GRAY)
             caption.pack(anchor="w", padx=14, pady=(0, 12))
             self.power_group_cards[name] = {"value": value, "caption": caption}
@@ -651,7 +651,7 @@ class PcsRealtimeMonitor(ctk.CTk):
                 continue
             device = item.get("device") or {}
             if item.get("type") == 2:
-                pcs_val = (device.get("pcs") or {}).get("pcs_total_apparent_power")
+                pcs_val = (device.get("pcs") or {}).get("pcs_total_active_power")
                 pcs[name] = pcs_val
             elif item.get("type") == 1:
                 meters[name] = device.get("total_apparent_power")
@@ -847,13 +847,13 @@ class PcsRealtimeMonitor(ctk.CTk):
                 info = pg["devices"].get(name) or {}
                 pcs_power = info.get("pcs_apparent_power")
                 if pcs_power is not None:
-                    widgets["value"].configure(text=f"{pcs_power} kVA", text_color=COLOR_GREEN)
-                    widgets["caption"].configure(text="PCS total apparent power (kVA)")
+                    widgets["value"].configure(text=f"{pcs_power} kW", text_color=COLOR_GREEN)
+                    widgets["caption"].configure(text="PCS total active power (kW)")
                 else:
                     apparent = info.get("apparent_power")
-                    widgets["caption"].configure(text="total apparent power (kVA)")
+                    widgets["caption"].configure(text="total apparent power (kW)")
                     if apparent is not None:
-                        widgets["value"].configure(text=f"{apparent} kVA", text_color=COLOR_GREEN)
+                        widgets["value"].configure(text=f"{apparent} kW", text_color=COLOR_GREEN)
                     else:
                         widgets["value"].configure(text="--", text_color=COLOR_GREEN)
 
