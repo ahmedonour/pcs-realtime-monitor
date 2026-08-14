@@ -3,5 +3,9 @@ requests>=2.31.0
 pystray>=0.19.5
 pillow>=10.0
 
+# The automation console needs no extra packages: rules use the standard
+# library (csv, time, threading, shutil) and weather / IP geolocation use
+# `requests` above (Open-Meteo + ipify/ipapi.co, no API key required).
+
 # build
 pyinstaller>=6.0

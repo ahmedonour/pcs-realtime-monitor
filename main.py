@@ -7,7 +7,9 @@ A clean CustomTkinter dashboard:
   - Battery SOC for every BMS device (extension's /v1/history-data poll).
 """
 
+import csv
 import json
+import shutil
 import socket
 import sys
 import threading
@@ -18,6 +20,7 @@ from pathlib import Path
 import customtkinter as ctk
 import requests
 import tkinter as tk
+from tkinter import filedialog
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -39,6 +42,23 @@ BMS_INTERVAL = 5.0  # seconds (matches the extension)
 POWER_GROUP_INTERVAL = 1.0  # seconds (power group is requested every 1s)
 POWER_GROUP_DEVICES = ["GateMeter", "ESS1 master", "ESS2 slave"]
 RECONNECT_MAX_BACKOFF = 30.0  # seconds between retries while disconnected
+
+# --- automation ---
+AUTOMATION_INTERVAL = 30.0  # seconds between rule evaluations
+AUTOMATION_STEP = 5.0  # kW step when nudging the PV power
+PV_POWER_MIN = 0.0
+PV_POWER_MAX = 500.0
+HOT_START_HOUR = 10  # rule 2 window 10:00..18:00
+HOT_END_HOUR = 18
+HOT_TEMP = 35.0  # degrees Celsius
+SOC_HIGH = 95.0  # any BMS >= 95% triggers rule 3 discharge
+SOC_RECOVER = 85.0  # any BMS <= 85% triggers recovery (charge)
+ESS_DISCHARGE_RANGE = (-25.0, -15.0)  # target ESS PCS power when SOC high
+ESS_CHARGE_RANGE = (10.0, 20.0)  # target ESS PCS power during hot window
+LOG_DIR = Path.home() / ".pcs-realtime-monitor" / "logs"
+WEATHER_CACHE_SECONDS = 600  # refetch temperature at most every 10 min
+LOG_FIELDS = ["timestamp", "rule", "action", "gate_kw", "ess1_kw", "ess2_kw",
+              "pv_current_kw", "pv_target_kw", "temp_c", "soc", "applied"]
 
 SEQUENCE_STEPS = [
     ("pcs_device_stop", "Stop device"),
@@ -105,6 +125,16 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.sequence_running = False
         self.sequence_status = {}
 
+        self.automation = {"enabled": False, "pv_power": None, "last_action": None}
+        self._automation_ticking = False
+        self.log_dir = LOG_DIR
+        try:
+            self.log_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            self.log_dir = Path.cwd()
+        self.weather_cache = None
+        self.location_cache = None
+
         self.pv_cards = {}
         self.bms_cards = {}
         self.power_group_cards = {}
@@ -119,6 +149,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.btn_pv_power = None
         self.lbl_pv_power_status = None
         self.lbl_pg_ts = None
+        self.console = None
+        self.btn_automation = None
+        self.btn_download_log = None
+        self.lbl_weather = None
+        self.lbl_clock = None
 
         self._window_icon()
         self.build_login()
@@ -362,11 +397,15 @@ class PcsRealtimeMonitor(ctk.CTk):
     def build_control_section(self):
         ctl = ctk.CTkFrame(self.content, corner_radius=12, fg_color="#1c1d30")
         ctl.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+        ctl.grid_columnconfigure(0, weight=1)
 
-        ctk.CTkLabel(ctl, text="CONTROL", font=ctk.CTkFont(size=11, weight="bold"),
+        left = ctk.CTkFrame(ctl, fg_color="transparent")
+        left.grid(row=0, column=0, sticky="nsew")
+
+        ctk.CTkLabel(left, text="CONTROL", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_GRAY).pack(anchor="w", padx=16, pady=(8, 2))
 
-        seq_row = ctk.CTkFrame(ctl, fg_color="transparent")
+        seq_row = ctk.CTkFrame(left, fg_color="transparent")
         seq_row.pack(fill="x", padx=16, pady=(0, 2))
         ctk.CTkLabel(seq_row, text="Run sequence", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left", padx=(0, 12))
         self.btn_seq_both = ctk.CTkButton(seq_row, text="Both batteries", width=110, height=26, corner_radius=8,
@@ -379,12 +418,12 @@ class PcsRealtimeMonitor(ctk.CTk):
             btn.pack(side="left", padx=(0, 8))
             self.btn_seq_bms[did] = btn
 
-        self.lbl_seq_status = ctk.CTkLabel(ctl, text="idle", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_seq_status = ctk.CTkLabel(left, text="idle", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
         self.lbl_seq_status.pack(anchor="w", padx=16, pady=(0, 2))
 
-        ctk.CTkFrame(ctl, height=1, fg_color="#2c2d45").pack(fill="x", padx=16, pady=(0, 4))
+        ctk.CTkFrame(left, height=1, fg_color="#2c2d45").pack(fill="x", padx=16, pady=(0, 4))
 
-        pv_row = ctk.CTkFrame(ctl, fg_color="transparent")
+        pv_row = ctk.CTkFrame(left, fg_color="transparent")
         pv_row.pack(fill="x", padx=16, pady=(0, 2))
         ctk.CTkLabel(pv_row, text="PV power (run_power)", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left", padx=(0, 12))
         self.ent_pv_power = ctk.CTkEntry(pv_row, width=100, height=26, corner_radius=8)
@@ -395,15 +434,45 @@ class PcsRealtimeMonitor(ctk.CTk):
                                           command=self.apply_pv_power)
         self.btn_pv_power.pack(side="left")
 
-        self.lbl_pv_power_status = ctk.CTkLabel(ctl, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_pv_power_status = ctk.CTkLabel(left, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
         self.lbl_pv_power_status.pack(anchor="w", padx=16, pady=(0, 2))
 
         self.chk_background = ctk.CTkCheckBox(
-            ctl, text="Run in background when the window is closed",
+            left, text="Run in background when the window is closed",
             variable=self.run_in_background, text_color=COLOR_GRAY,
             font=ctk.CTkFont(size=10), fg_color=COLOR_GREEN, hover_color="#3aa372",
         )
         self.chk_background.pack(anchor="w", padx=16, pady=(0, 6))
+
+        # --- automation console panel (far right) ---
+        right = ctk.CTkFrame(ctl, width=300, fg_color="#171827")
+        right.grid(row=0, column=1, sticky="ns", padx=(12, 0))
+        right.grid_propagate(False)
+        right.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(right, text="AUTOMATION CONSOLE", font=ctk.CTkFont(size=11, weight="bold"),
+                     text_color=COLOR_GRAY).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 4))
+
+        self.console = ctk.CTkTextbox(right, width=276, height=120, corner_radius=8,
+                                      fg_color="#101120", text_color=COLOR_GRAY, font=ctk.CTkFont(size=10))
+        self.console.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 6))
+        self.console.configure(state="disabled")
+
+        self.btn_automation = ctk.CTkButton(right, text="Start Automation", height=28, corner_radius=8,
+                                            fg_color=COLOR_GREEN, hover_color="#3aa372",
+                                            command=self.toggle_automation)
+        self.btn_automation.grid(row=2, column=0, sticky="ew", padx=12, pady=(0, 4))
+
+        self.btn_download_log = ctk.CTkButton(right, text="Download Log", height=28, corner_radius=8,
+                                              fg_color="#3a3a52", hover_color="#4a4a66",
+                                              command=self.download_log)
+        self.btn_download_log.grid(row=3, column=0, sticky="ew", padx=12, pady=(0, 4))
+
+        self.lbl_weather = ctk.CTkLabel(right, text="Weather: --", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_weather.grid(row=4, column=0, sticky="w", padx=12, pady=(2, 0))
+
+        self.lbl_clock = ctk.CTkLabel(right, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_clock.grid(row=5, column=0, sticky="w", padx=12, pady=(0, 8))
 
     def show_dashboard(self):
         self.current_view = "dashboard"
@@ -414,6 +483,10 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.token = None
         self.sequence_running = False
         self.sequence_status = {}
+        self.automation["enabled"] = False
+        if self.btn_automation is not None:
+            self.btn_automation.configure(
+                text="Start Automation", fg_color=COLOR_GREEN, hover_color="#3aa372")
         self.show_login()
         with self.lock:
             self.pv = {"devices": {}, "ts": None, "error": None}
@@ -612,27 +685,30 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.btn_pv_power.configure(state="disabled", text="Applying...")
         threading.Thread(target=self._pv_power_worker, args=(run_power,), daemon=True).start()
 
+    def _apply_pv_power_sync(self, run_power):
+        if not self.token:
+            self.login()
+        body = {
+            "status": 1,
+            "month": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            "week_day": [0, 1, 2, 3, 4, 5, 6],
+            "device_ids": PV_CHARGE_DEVICE_IDS,
+            "settings": [{
+                "start_hour": 0,
+                "start_minute": 0,
+                "end_hour": 23,
+                "end_minute": 59,
+                "cdc_enable_mode": 2,
+                "run_power": run_power,
+            }],
+            "charge_type": 1,
+            "mode": 2,
+        }
+        self._api_patch("/v1/photovoltaic-charge/2", body)
+
     def _pv_power_worker(self, run_power):
         try:
-            if not self.token:
-                self.login()
-            body = {
-                "status": 1,
-                "month": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-                "week_day": [0, 1, 2, 3, 4, 5, 6],
-                "device_ids": PV_CHARGE_DEVICE_IDS,
-                "settings": [{
-                    "start_hour": 0,
-                    "start_minute": 0,
-                    "end_hour": 23,
-                    "end_minute": 59,
-                    "cdc_enable_mode": 2,
-                    "run_power": run_power,
-                }],
-                "charge_type": 1,
-                "mode": 2,
-            }
-            self._api_patch("/v1/photovoltaic-charge/2", body)
+            self._apply_pv_power_sync(run_power)
             self.after(0, lambda: self.lbl_pv_power_status.configure(
                 text=f"PV power set to {run_power} kW", text_color=COLOR_GREEN))
         except Exception as e:
@@ -646,7 +722,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.stop_event.clear()
         if self.workers:
             return
-        for target in (self.power_group_worker, self.pv_worker, self.bms_worker):
+        for target in (self.power_group_worker, self.pv_worker, self.bms_worker, self.automation_worker):
             t = threading.Thread(target=target, daemon=True)
             t.start()
             self.workers.append(t)
@@ -839,9 +915,268 @@ class PcsRealtimeMonitor(ctk.CTk):
                 backoff = min(backoff * 2, RECONNECT_MAX_BACKOFF)
             self.stop_event.wait(backoff if backoff != 1.0 else BMS_INTERVAL)
 
+    # ------------------------------------------------------------ automation
+    def _ui(self, fn, *args):
+        try:
+            self.after(0, lambda: fn(*args))
+        except Exception:
+            pass
+
+    def _log_console(self, msg, color=COLOR_GRAY):
+        if self.console is None:
+            return
+        try:
+            self.console.configure(state="normal")
+            self.console.tag_configure(color, foreground=color)
+            self.console.insert(
+                "end", f"[{datetime.now().strftime('%H:%M:%S')}] {msg}\n", (color,))
+            self.console.see("end")
+            self.console.configure(state="disabled")
+        except Exception:
+            pass
+
+    def toggle_automation(self):
+        if self.automation["enabled"]:
+            self.automation["enabled"] = False
+            if self.btn_automation is not None:
+                self.btn_automation.configure(
+                    text="Start Automation", fg_color=COLOR_GREEN, hover_color="#3aa372")
+            self._log_console("Automation stopped", COLOR_RED)
+        else:
+            self.automation["enabled"] = True
+            self.automation["pv_power"] = self._read_pv_setting()
+            if self.btn_automation is not None:
+                self.btn_automation.configure(
+                    text="Stop Automation", fg_color=COLOR_RED, hover_color="#c24444")
+            self._log_console("Automation started", COLOR_GREEN)
+            threading.Thread(target=self.automation_tick, daemon=True).start()
+
+    def _read_pv_setting(self):
+        if self.ent_pv_power is not None:
+            try:
+                return float(self.ent_pv_power.get().strip())
+            except Exception:
+                pass
+        return 100.0
+
+    def automation_worker(self):
+        while not self.stop_event.is_set():
+            self.stop_event.wait(AUTOMATION_INTERVAL)
+            if self.stop_event.is_set():
+                break
+            if not self.automation["enabled"]:
+                continue
+            try:
+                self.automation_tick()
+            except Exception as e:
+                self._ui(self._log_console, f"automation error: {e}", COLOR_RED)
+
+    def automation_tick(self):
+        if self._automation_ticking:
+            return
+        self._automation_ticking = True
+        try:
+            with self.lock:
+                pg = dict(self.power_group)
+                bms = dict(self.bms)
+            devices = pg.get("devices") or {}
+            gate_raw = devices.get("GateMeter", {}).get("apparent_power")
+            ess1 = devices.get("ESS1 master", {}).get("pcs_apparent_power")
+            ess2 = devices.get("ESS2 slave", {}).get("pcs_apparent_power")
+            socs = [d.get("soc") for d in (bms.get("devices") or {}).values() if d.get("soc") is not None]
+            if gate_raw is None:
+                self._ui(self._log_console, "no gate data yet, skipping", COLOR_GRAY)
+                return
+            gate = abs(gate_raw)
+            now = datetime.now()
+            temp = self._get_temperature()
+            hot = HOT_START_HOUR <= now.hour <= HOT_END_HOUR and temp is not None and temp >= HOT_TEMP
+            high_soc = any(s >= SOC_HIGH for s in socs)
+            recover_soc = any(s <= SOC_RECOVER for s in socs)
+            soc = max(socs) if socs else None
+            current_pv = self.automation.get("pv_power") or self._read_pv_setting()
+            target = current_pv
+            rule = "idle"
+            action = "no action"
+
+            if high_soc:
+                rule = "rule3-soc-high"
+                if ess1 is not None and ess2 is not None:
+                    if ess1 > ESS_DISCHARGE_RANGE[1] or ess2 > ESS_DISCHARGE_RANGE[1]:
+                        target = current_pv - AUTOMATION_STEP
+                        action = "SOC>=95, decrease PV to discharge ESS"
+                    elif ess1 < ESS_DISCHARGE_RANGE[0] or ess2 < ESS_DISCHARGE_RANGE[0]:
+                        target = current_pv + AUTOMATION_STEP
+                        action = "SOC>=95, ESS below target, raise PV"
+                    else:
+                        action = "SOC>=95, ESS in -25..-15, hold"
+                else:
+                    action = "SOC>=95, waiting for ESS data"
+            elif recover_soc:
+                rule = "rule3-soc-recover"
+                if ess1 is not None and ess2 is not None and (ess1 < 0 or ess2 < 0):
+                    target = current_pv + AUTOMATION_STEP
+                    action = "SOC<=85, increase PV to charge ESS"
+                else:
+                    action = "SOC<=85, ESS positive, hold"
+            elif hot:
+                rule = "rule2-hot"
+                target = max(PV_POWER_MIN, gate - 20.0)
+                if ess1 is not None and ess2 is not None:
+                    if ess1 < ESS_CHARGE_RANGE[0] or ess2 < ESS_CHARGE_RANGE[0]:
+                        target += AUTOMATION_STEP
+                        action = "hot, PV=gate-20, raise to keep ESS>=10"
+                    elif ess1 > ESS_CHARGE_RANGE[1] or ess2 > ESS_CHARGE_RANGE[1]:
+                        target -= AUTOMATION_STEP
+                        action = "hot, PV=gate-20, lower to keep ESS<=20"
+                    else:
+                        action = "hot, PV=gate-20, ESS in 10..20"
+                else:
+                    action = "hot, PV=gate-20"
+            elif gate_raw <= 0.0:
+                rule = "rule1-gate-negative"
+                target = max(PV_POWER_MIN, gate + 20.0)
+                action = "gate<=0, PV=abs(gate)+20"
+            else:
+                action = "gate>0, hold"
+
+            target = max(PV_POWER_MIN, min(PV_POWER_MAX, target))
+            applied = False
+            if abs(target - current_pv) > 0.01:
+                try:
+                    self._apply_pv_power_sync(round(target, 1))
+                    applied = True
+                    self.automation["pv_power"] = target
+                    self._ui(self._log_console,
+                             f"{action} -> PV {current_pv:.1f} -> {target:.1f} kW",
+                             COLOR_GREEN)
+                except Exception as e:
+                    self._ui(self._log_console, f"{action} failed: {e}", COLOR_RED)
+            else:
+                self.automation["pv_power"] = target
+                self._ui(self._log_console, action, COLOR_GRAY)
+
+            self._append_log({
+                "timestamp": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "rule": rule,
+                "action": action,
+                "gate_kw": f"{gate_raw:.1f}",
+                "ess1_kw": f"{ess1:.1f}" if ess1 is not None else "",
+                "ess2_kw": f"{ess2:.1f}" if ess2 is not None else "",
+                "pv_current_kw": f"{current_pv:.1f}",
+                "pv_target_kw": f"{target:.1f}",
+                "temp_c": f"{temp:.1f}" if temp is not None else "",
+                "soc": f"{soc:.1f}" if soc is not None else "",
+                "applied": "yes" if applied else "no",
+            })
+        finally:
+            self._automation_ticking = False
+
+    def _append_log(self, record):
+        try:
+            path = self.log_dir / f"automation_{datetime.now().strftime('%Y-%m-%d')}.csv"
+            new = not path.exists()
+            with open(path, "a", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=LOG_FIELDS)
+                if new:
+                    writer.writeheader()
+                writer.writerow({k: record.get(k, "") for k in LOG_FIELDS})
+        except Exception as e:
+            self._ui(self._log_console, f"log write error: {e}", COLOR_RED)
+
+    def _available_log_days(self):
+        days = []
+        try:
+            for p in self.log_dir.glob("automation_*.csv"):
+                days.append(p.stem.split("_", 1)[1])
+        except Exception:
+            pass
+        return sorted(days, reverse=True)
+
+    def download_log(self):
+        days = self._available_log_days()
+        if not days:
+            self._log_console("No logs available yet", COLOR_RED)
+            return
+        top = ctk.CTkToplevel(self)
+        top.title("Download Log")
+        top.geometry("340x200")
+        top.resizable(False, False)
+        ctk.CTkLabel(top, text="Select a day to download:", font=ctk.CTkFont(size=12)).pack(pady=(16, 6))
+        menu = ctk.CTkOptionMenu(top, values=days, width=200, height=30)
+        menu.pack(pady=(0, 12))
+        menu.set(days[0])
+
+        def save():
+            day = menu.get()
+            src = self.log_dir / f"automation_{day}.csv"
+            path = filedialog.asksaveasfilename(
+                defaultextension=".csv",
+                initialfile=f"automation_{day}.csv",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])
+            if path:
+                try:
+                    shutil.copy(str(src), path)
+                    self._log_console(f"Log saved: {path}", COLOR_GREEN)
+                    top.destroy()
+                except Exception as e:
+                    self._log_console(f"save failed: {e}", COLOR_RED)
+
+        ctk.CTkButton(top, text="Save", width=120, height=30, corner_radius=8, command=save).pack(pady=(4, 12))
+
+    def _get_location(self):
+        if self.location_cache is not None:
+            return self.location_cache or None
+        loc = None
+        try:
+            ip = requests.get("https://api.ipify.org?format=json", timeout=5).json().get("ip")
+            data = requests.get(f"https://ipapi.co/{ip}/json/", timeout=6).json()
+            if data.get("latitude") is not None and data.get("longitude") is not None:
+                loc = {"lat": data["latitude"], "lon": data["longitude"], "city": data.get("city") or data.get("region") or ""}
+        except Exception:
+            pass
+        if loc is None:
+            try:
+                data = requests.get("https://ipwho.is/", timeout=6).json()
+                if data.get("latitude") is not None and data.get("longitude") is not None:
+                    loc = {"lat": data["latitude"], "lon": data["longitude"], "city": data.get("city") or ""}
+            except Exception:
+                pass
+        self.location_cache = loc
+        if loc is None:
+            self._ui(self._set_weather_label, "Weather: unavailable")
+        return loc
+
+    def _get_temperature(self):
+        now = time.time()
+        if self.weather_cache and now - self.weather_cache.get("ts", 0) < WEATHER_CACHE_SECONDS:
+            return self.weather_cache["temp"]
+        loc = self._get_location()
+        if not loc:
+            return None
+        try:
+            data = requests.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={"latitude": loc["lat"], "longitude": loc["lon"], "current": "temperature_2m"},
+                timeout=8).json()
+            temp = data["current"]["temperature_2m"]
+            self.weather_cache = {"ts": now, "temp": temp}
+            city = (loc.get("city") or "").strip()
+            self._ui(self._set_weather_label,
+                     f"Weather: {temp:.1f}°C {city}".strip())
+            return temp
+        except Exception:
+            return None
+
+    def _set_weather_label(self, text):
+        if self.lbl_weather is not None:
+            self.lbl_weather.configure(text=text)
+
     # ------------------------------------------------------------ ui refresh
     def refresh_ui(self):
         if self.current_view == "dashboard":
+            if self.lbl_clock is not None:
+                self.lbl_clock.configure(text=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             with self.lock:
                 pv = dict(self.pv)
                 bms = dict(self.bms)

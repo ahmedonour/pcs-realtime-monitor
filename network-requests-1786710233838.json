@@ -1,0 +1,729 @@
+[
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 4,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 35,
+            "functionName": "loadStyles",
+            "lineNumber": 1265,
+            "scriptId": "15",
+            "url": "chrome-extension://chbmbnnlhmhmlipoeghildpfhhlehfpm/content/content.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "text/css",
+    "protocol": "chrome-extension",
+    "requestHeaders": {
+      "Referer": "http://192.168.0.123/",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": ".recording-indicator-container{display:none;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:14px;opacity:0;pointer-events:auto;position:fixed;transform:translateY(-100%);transition:all .3s cubic-bezier(.4,0,.2,1);user-select:none;z-index:2147483647}.recording-indicator-container.visible{display:block}.recording-indicator-container.active{opacity:1;transform:translateY(0)}.recording-indicator-container.hovered{transform:translate(-100px,100px);transition:transform .3s ease-in-out}.recording-indicator{align-items:center;background:linear-gradient(135deg,#ef4444,#dc2626);border:1px solid hsla(0,0%,100%,.2);border-radius:20px;box-shadow:0 4px 12px rgba(255,71,87,.3),0 2px 8px rgba(0,0,0,.1);color:#fff;cursor:grab;display:flex;font-weight:500;gap:8px;padding:8px 16px;position:relative;transition:transform .2s ease,box-shadow .2s ease}.recording-indicator:hover{box-shadow:0 6px 16px rgba(255,71,87,.4),0 3px 12px rgba(0,0,0,.15);transform:scale(1.02)}.recording-indicator.dragging{box-shadow:0 8px 24px rgba(255,71,87,.5),0 4px 16px rgba(0,0,0,.2);cursor:grabbing;transform:scale(1.05);z-index:999999}.drag-handle{color:hsla(0,0%,100%,.7);cursor:grab;font-size:12px;letter-spacing:-1px;line-height:1;padding:0 2px;user-select:none}.recording-indicator.dragging .drag-handle{color:hsla(0,0%,100%,.9);cursor:grabbing}.recording-indicator:before{animation:pulse 2s infinite;background:#fff;border-radius:50%;content:\"\";height:8px;width:8px}.interaction-counter{background:hsla(0,0%,100%,.2);border-radius:10px;font-weight:600;min-width:20px;padding:0 8px;text-align:center}@keyframes pulse{0%,to{opacity:1}50%{opacity:.3}}.copied-message{animation:fadeInOut 2s ease-in-out;backdrop-filter:blur(10px);background:linear-gradient(135deg,#10b981,#059669);border:1px solid hsla(0,0%,100%,.2);border-radius:16px;box-shadow:0 2px 8px rgba(46,213,115,.3);color:#fff;font-size:12px;font-weight:500;margin-top:8px;padding:6px 12px;text-align:center}.copied-message.error{background:linear-gradient(135deg,#ff4757,#ff3742);box-shadow:0 2px 8px rgba(255,71,87,.3)}@keyframes fadeInOut{0%{opacity:0;transform:translateY(-10px)}10%,90%{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(10px)}}.quick-actions-area{display:flex;gap:6px;justify-content:flex-end;margin-top:8px;opacity:0;pointer-events:none;transform:translateY(-10px);transition:all .2s ease}.recording-indicator-container.area-selection-active .quick-actions-area,.recording-indicator-container.quick-actions-visible .quick-actions-area{opacity:1;pointer-events:auto;transform:translateY(0)}.stop-btn{align-items:center;backdrop-filter:blur(10px);background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border:1px solid hsla(0,0%,100%,.2);border-radius:16px;box-shadow:0 2px 8px rgba(239,68,68,.3);color:#fff;cursor:pointer;display:flex;font-family:inherit;font-size:12px;font-weight:500;gap:6px;padding:6px 12px;transition:all .2s ease;user-select:none}.stop-btn:hover{background:linear-gradient(135deg,#dc2626,#b91c1c);box-shadow:0 4px 12px rgba(239,68,68,.4);transform:translateY(-1px)}.stop-btn:active{box-shadow:0 2px 6px rgba(239,68,68,.3);transform:translateY(0)}.stop-btn svg{height:12px;width:12px;stroke-width:2}.select-area-btn{align-items:center;backdrop-filter:blur(10px);background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;border:1px solid hsla(0,0%,100%,.2);border-radius:16px;box-shadow:0 2px 8px rgba(99,102,241,.3);color:#fff;cursor:pointer;display:flex;font-family:inherit;font-size:12px;font-weight:500;gap:6px;padding:6px 12px;transition:all .2s ease;user-select:none}.select-area-btn:hover{background:linear-gradient(135deg,#4f46e5,#4338ca);box-shadow:0 4px 12px rgba(99,102,241,.4);transform:translateY(-1px)}.select-area-btn:active{box-shadow:0 2px 6px rgba(99,102,241,.3);transform:translateY(0)}.select-area-btn.active{background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:2px solid hsla(0,0%,100%,.4);box-shadow:0 4px 12px rgba(139,92,246,.5)}.select-area-btn.active:hover{background:linear-gradient(135deg,#7c3aed,#6d28d9)}.select-area-btn svg{height:12px;width:12px;stroke-width:2}.review-btn{align-items:center;backdrop-filter:blur(10px);background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border:1px solid hsla(0,0%,100%,.2);border-radius:16px;box-shadow:0 2px 8px rgba(59,130,246,.3);color:#fff;cursor:pointer;display:flex;font-family:inherit;font-size:12px;font-weight:500;gap:6px;padding:6px 12px;transition:all .2s ease;user-select:none}.review-btn:hover{background:linear-gradient(135deg,#1d4ed8,#1e40af);box-shadow:0 4px 12px rgba(59,130,246,.4);transform:translateY(-1px)}.review-btn:active{box-shadow:0 2px 6px rgba(59,130,246,.3);transform:translateY(0)}.review-btn svg{height:12px;width:12px;stroke-width:2}",
+    "responseHeaders": {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Security-Policy": "script-src 'self';",
+      "Content-Type": "text/css",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "ETag": "\"T8uUPMuJX8ICMG6zE4XD2tEG8tQ=\"",
+      "Last-Modified": "Sat, 18 Jul 2026 12:47:08 GMT",
+      "cache-control": "no-cache"
+    },
+    "startTime": 197748.647558,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710181129,
+    "type": "Fetch",
+    "url": "chrome-extension://chbmbnnlhmhmlipoeghildpfhhlehfpm/content/components/page-control.css"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 86,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"\",\"data\":{\"list\":[{\"id\":10912,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3060,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T10:31:27Z\",\"handle_time\":\"2026-08-14T11:39:22Z\"},{\"id\":10910,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2880,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T10:22:49Z\",\"handle_time\":\"2026-08-14T11:35:36Z\"},{\"id\":10908,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2879,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T09:48:03Z\",\"handle_time\":\"2026-08-14T10:22:48Z\"},{\"id\":10906,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2878,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:43:40Z\",\"handle_time\":\"2026-08-14T09:48:02Z\"},{\"id\":10900,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2877,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:28:04Z\",\"handle_time\":\"2026-08-14T08:43:39Z\"},{\"id\":10888,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3056,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T02:32:41Z\",\"handle_time\":\"2026-08-14T08:31:25Z\"},{\"id\":10892,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3058,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T06:33:47Z\",\"handle_time\":\"2026-08-14T08:31:25Z\"},{\"id\":10869,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2869,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-13T19:21:06Z\",\"handle_time\":\"2026-08-14T08:28:03Z\"},{\"id\":10894,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2876,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T07:12:36Z\",\"handle_time\":\"2026-08-14T08:28:03Z\"},{\"id\":10876,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2871,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-13T22:00:41Z\",\"handle_time\":\"2026-08-14T07:12:35Z\"}],\"total\":5851}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:22:52 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)",
+      "Transfer-Encoding": "chunked"
+    },
+    "startTime": 197740.746571,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710173418,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm?search=&level=0&alarm-type=ems&page=1&page-size=10&handle-status=2"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 78,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"\",\"data\":{\"list\":[{\"id\":10912,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3060,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T10:31:27Z\",\"handle_time\":\"2026-08-14T11:39:22Z\"},{\"id\":10910,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2880,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T10:22:49Z\",\"handle_time\":\"2026-08-14T11:35:36Z\"},{\"id\":10908,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2879,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T09:48:03Z\",\"handle_time\":\"2026-08-14T10:22:48Z\"},{\"id\":10906,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2878,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:43:40Z\",\"handle_time\":\"2026-08-14T09:48:02Z\"},{\"id\":10900,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2877,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:28:04Z\",\"handle_time\":\"2026-08-14T08:43:39Z\"},{\"id\":10888,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3056,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T02:32:41Z\",\"handle_time\":\"2026-08-14T08:31:25Z\"},{\"id\":10892,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3058,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T06:33:47Z\",\"handle_time\":\"2026-08-14T08:31:25Z\"},{\"id\":10869,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2869,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-13T19:21:06Z\",\"handle_time\":\"2026-08-14T08:28:03Z\"},{\"id\":10894,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2876,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T07:12:36Z\",\"handle_time\":\"2026-08-14T08:28:03Z\"},{\"id\":10876,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2871,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-13T22:00:41Z\",\"handle_time\":\"2026-08-14T07:12:35Z\"}],\"total\":6308}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:21:45 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)",
+      "Transfer-Encoding": "chunked"
+    },
+    "startTime": 197673.757464,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710106504,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm?search=&level=0&alarm-type=&page=1&page-size=10&handle-status=2"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 75,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"success\",\"data\":{\"history_alarm_count\":6308,\"today_handle_alarm_count\":16,\"ave_handle_time\":3.2}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Length": "118",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:21:45 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)"
+    },
+    "startTime": 197673.651623,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710106262,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm/history?"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 4,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 18,
+            "functionName": "",
+            "lineNumber": 325,
+            "scriptId": "16",
+            "url": "chrome-extension://gppongmhjkpfnbhagpmjfkannfbllamg/js/content.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "text/javascript",
+    "protocol": "chrome-extension",
+    "requestHeaders": {
+      "If-Modified-Since": "Tue, 11 Aug 2026 07:58:28 GMT",
+      "If-None-Match": "\"h6jz68zaBGzpa1qwbJdB1xn+2Iw=\"",
+      "Referer": "http://192.168.0.123/",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "/* eslint-env browser */\n\n;(function () {\n  try {\n    const onMessage = ({ data }) => {\n      if (!data.wappalyzer || !data.wappalyzer.technologies) {\n        return\n      }\n\n      const { technologies } = data.wappalyzer\n\n      postMessage({\n        wappalyzer: {\n          js: technologies.reduce((technologies, { name, chains }) => {\n            if (chains) {\n              chains.forEach((chain, index) => {\n                const value = chain\n                  .split('.')\n                  .reduce(\n                    (value, method) =>\n                      value &&\n                      value instanceof Object &&\n                      Object.prototype.hasOwnProperty.call(value, method)\n                        ? value[method]\n                        : '__UNDEFINED__',\n                    window\n                  )\n\n                if (value !== '__UNDEFINED__') {\n                  technologies.push({\n                    name,\n                    chain,\n                    value:\n                      typeof value === 'string' || typeof value === 'number'\n                        ? value\n                        : !!value,\n                  })\n                }\n              })\n            }\n\n            return technologies\n          }, []),\n        },\n      })\n    }\n\n    addEventListener('message', onMessage, { once: true })\n  } catch (e) {\n    // Fail quietly\n  }\n})()\n",
+    "responseHeaders": {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Security-Policy": "script-src 'self'; object-src 'self'",
+      "Content-Type": "text/javascript",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "ETag": "\"h6jz68zaBGzpa1qwbJdB1xn+2Iw=\"",
+      "Last-Modified": "Tue, 11 Aug 2026 07:58:28 GMT",
+      "cache-control": "no-cache"
+    },
+    "startTime": 197669.623225,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710102104,
+    "type": "Script",
+    "url": "chrome-extension://gppongmhjkpfnbhagpmjfkannfbllamg/js/js.js"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 3,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 18,
+            "functionName": "",
+            "lineNumber": 325,
+            "scriptId": "16",
+            "url": "chrome-extension://gppongmhjkpfnbhagpmjfkannfbllamg/js/content.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "text/javascript",
+    "protocol": "chrome-extension",
+    "requestHeaders": {
+      "If-Modified-Since": "Tue, 11 Aug 2026 07:58:28 GMT",
+      "If-None-Match": "\"h6jz68zaBGzpa1qwbJdB1xn+2Iw=\"",
+      "Referer": "http://192.168.0.123/",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "/* eslint-env browser */\n\n;(function () {\n  try {\n    const onMessage = ({ data }) => {\n      if (!data.wappalyzer || !data.wappalyzer.technologies) {\n        return\n      }\n\n      const { technologies } = data.wappalyzer\n\n      const toScalar = (value) =>\n        typeof value === 'string' || typeof value === 'number' ? value : !!value\n\n      removeEventListener('message', onMessage)\n\n      postMessage({\n        wappalyzer: {\n          dom: technologies.reduce((technologies, { name, dom }) => {\n            try {\n              Object.keys(dom).forEach((selector) => {\n                let nodes = []\n\n                try {\n                  nodes = document.querySelectorAll(selector)\n                } catch (error) {\n                  // Continue\n                }\n\n                if (!nodes.length) {\n                  return\n                }\n\n                nodes.forEach((node) => {\n                  dom[selector].forEach(({ properties }) => {\n                    if (properties) {\n                      Object.keys(properties).forEach((property) => {\n                        if (\n                          Object.prototype.hasOwnProperty.call(node, property)\n                        ) {\n                          const value = node[property]\n\n                          if (typeof value !== 'undefined') {\n                            technologies.push({\n                              name,\n                              selector,\n                              property,\n                              value: toScalar(value),\n                            })\n                          }\n                        }\n                      })\n                    }\n                  })\n                })\n              })\n            } catch (error) {\n              // Fail quietly\n            }\n\n            return technologies\n          }, []),\n        },\n      })\n    }\n\n    addEventListener('message', onMessage)\n  } catch (e) {\n    // Fail quietly\n  }\n})()\n",
+    "responseHeaders": {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Security-Policy": "script-src 'self'; object-src 'self'",
+      "Content-Type": "text/javascript",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "ETag": "\"h6jz68zaBGzpa1qwbJdB1xn+2Iw=\"",
+      "Last-Modified": "Tue, 11 Aug 2026 07:58:28 GMT",
+      "cache-control": "no-cache"
+    },
+    "startTime": 197664.534652,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710097131,
+    "type": "Script",
+    "url": "chrome-extension://gppongmhjkpfnbhagpmjfkannfbllamg/js/dom.js"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 2,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 18,
+            "functionName": "",
+            "lineNumber": 325,
+            "scriptId": "16",
+            "url": "chrome-extension://gppongmhjkpfnbhagpmjfkannfbllamg/js/content.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "text/javascript",
+    "protocol": "chrome-extension",
+    "requestHeaders": {
+      "If-Modified-Since": "Tue, 11 Aug 2026 07:58:28 GMT",
+      "If-None-Match": "\"h6jz68zaBGzpa1qwbJdB1xn+2Iw=\"",
+      "Referer": "http://192.168.0.123/",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "/* eslint-env browser */\n\n;(function () {\n  try {\n    const onMessage = ({ data }) => {\n      if (!data.wappalyzer || !data.wappalyzer.technologies) {\n        return\n      }\n\n      const { technologies } = data.wappalyzer\n\n      postMessage({\n        wappalyzer: {\n          js: technologies.reduce((technologies, { name, chains }) => {\n            if (chains) {\n              chains.forEach((chain, index) => {\n                const value = chain\n                  .split('.')\n                  .reduce(\n                    (value, method) =>\n                      value &&\n                      value instanceof Object &&\n                      Object.prototype.hasOwnProperty.call(value, method)\n                        ? value[method]\n                        : '__UNDEFINED__',\n                    window\n                  )\n\n                if (value !== '__UNDEFINED__') {\n                  technologies.push({\n                    name,\n                    chain,\n                    value:\n                      typeof value === 'string' || typeof value === 'number'\n                        ? value\n                        : !!value,\n                  })\n                }\n              })\n            }\n\n            return technologies\n          }, []),\n        },\n      })\n    }\n\n    addEventListener('message', onMessage, { once: true })\n  } catch (e) {\n    // Fail quietly\n  }\n})()\n",
+    "responseHeaders": {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Security-Policy": "script-src 'self'; object-src 'self'",
+      "Content-Type": "text/javascript",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "ETag": "\"h6jz68zaBGzpa1qwbJdB1xn+2Iw=\"",
+      "Last-Modified": "Tue, 11 Aug 2026 07:58:28 GMT",
+      "cache-control": "no-cache"
+    },
+    "startTime": 197664.339819,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710096764,
+    "type": "Script",
+    "url": "chrome-extension://gppongmhjkpfnbhagpmjfkannfbllamg/js/js.js"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 3,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 18,
+            "functionName": "",
+            "lineNumber": 325,
+            "scriptId": "16",
+            "url": "chrome-extension://gppongmhjkpfnbhagpmjfkannfbllamg/js/content.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "text/javascript",
+    "protocol": "chrome-extension",
+    "requestHeaders": {
+      "Referer": "http://192.168.0.123/",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "/* eslint-env browser */\n\n;(function () {\n  try {\n    const onMessage = ({ data }) => {\n      if (!data.wappalyzer || !data.wappalyzer.technologies) {\n        return\n      }\n\n      const { technologies } = data.wappalyzer\n\n      const toScalar = (value) =>\n        typeof value === 'string' || typeof value === 'number' ? value : !!value\n\n      removeEventListener('message', onMessage)\n\n      postMessage({\n        wappalyzer: {\n          dom: technologies.reduce((technologies, { name, dom }) => {\n            try {\n              Object.keys(dom).forEach((selector) => {\n                let nodes = []\n\n                try {\n                  nodes = document.querySelectorAll(selector)\n                } catch (error) {\n                  // Continue\n                }\n\n                if (!nodes.length) {\n                  return\n                }\n\n                nodes.forEach((node) => {\n                  dom[selector].forEach(({ properties }) => {\n                    if (properties) {\n                      Object.keys(properties).forEach((property) => {\n                        if (\n                          Object.prototype.hasOwnProperty.call(node, property)\n                        ) {\n                          const value = node[property]\n\n                          if (typeof value !== 'undefined') {\n                            technologies.push({\n                              name,\n                              selector,\n                              property,\n                              value: toScalar(value),\n                            })\n                          }\n                        }\n                      })\n                    }\n                  })\n                })\n              })\n            } catch (error) {\n              // Fail quietly\n            }\n\n            return technologies\n          }, []),\n        },\n      })\n    }\n\n    addEventListener('message', onMessage)\n  } catch (e) {\n    // Fail quietly\n  }\n})()\n",
+    "responseHeaders": {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Security-Policy": "script-src 'self'; object-src 'self'",
+      "Content-Type": "text/javascript",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "ETag": "\"h6jz68zaBGzpa1qwbJdB1xn+2Iw=\"",
+      "Last-Modified": "Tue, 11 Aug 2026 07:58:28 GMT",
+      "cache-control": "no-cache"
+    },
+    "startTime": 197662.502678,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710095023,
+    "type": "Script",
+    "url": "chrome-extension://gppongmhjkpfnbhagpmjfkannfbllamg/js/dom.js"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 180,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"success\",\"data\":{\"wifi_status\":\"on\"}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Length": "58",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:21:31 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)"
+    },
+    "startTime": 197659.646617,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710094099,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/system-wifi/status?"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 149,
+    "initiator": {
+      "columnNumber": 0,
+      "lineNumber": 0,
+      "type": "parser",
+      "url": "http://192.168.0.123/assets/main.css"
+    },
+    "method": "GET",
+    "mimeType": "application/octet-stream",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Referer": "http://192.168.0.123/assets/main.css",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": ":deep {\n  .ant-table-thead {\n    background: #f8f8f9;\n    tr th {\n      color: rgba(10, 31, 68, 0.65);\n    }\n  }\n  .ant-table-tbody {\n    tr td {\n      color: #0a1f44;\n      font-weight: 500;\n    }\n  }\n}\n",
+    "responseHeaders": {
+      "Accept-Ranges": "bytes",
+      "Content-Length": "204",
+      "Content-Type": "application/octet-stream",
+      "Date": "Wed, 12 Aug 2026 05:30:45 GMT",
+      "ETag": "\"68959752-cc\"",
+      "Last-Modified": "Fri, 08 Aug 2025 06:21:06 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)"
+    },
+    "startTime": 197658.178635,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710092154,
+    "type": "Stylesheet",
+    "url": "http://192.168.0.123/assets/reset.less"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 65,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"\",\"data\":{\"list\":[{\"id\":10912,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3060,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T10:31:27Z\",\"handle_time\":\"2026-08-14T11:39:22Z\"},{\"id\":10910,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2880,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T10:22:49Z\",\"handle_time\":\"2026-08-14T11:35:36Z\"},{\"id\":10908,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2879,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T09:48:03Z\",\"handle_time\":\"2026-08-14T10:22:48Z\"},{\"id\":10906,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2878,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:43:40Z\",\"handle_time\":\"2026-08-14T09:48:02Z\"},{\"id\":10900,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2877,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:28:04Z\",\"handle_time\":\"2026-08-14T08:43:39Z\"},{\"id\":10888,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3056,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T02:32:41Z\",\"handle_time\":\"2026-08-14T08:31:25Z\"},{\"id\":10892,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3058,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T06:33:47Z\",\"handle_time\":\"2026-08-14T08:31:25Z\"},{\"id\":10869,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2869,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-13T19:21:06Z\",\"handle_time\":\"2026-08-14T08:28:03Z\"},{\"id\":10894,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2876,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T07:12:36Z\",\"handle_time\":\"2026-08-14T08:28:03Z\"},{\"id\":10876,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2871,\"handle_status\":2,\"handle_type\":1,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-13T22:00:41Z\",\"handle_time\":\"2026-08-14T07:12:35Z\"}],\"total\":5851}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:20:33 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)",
+      "Transfer-Encoding": "chunked"
+    },
+    "startTime": 197601.501851,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710034416,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm?search=&level=0&alarm-type=ems&page=1&page-size=10&handle-status=2"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 94,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"success\",\"data\":{\"history_alarm_count\":6308,\"today_handle_alarm_count\":16,\"ave_handle_time\":3.2}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Length": "118",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:20:33 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)"
+    },
+    "startTime": 197601.365279,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710034075,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm/history?"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 38,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"\",\"data\":{\"list\":[{\"id\":10915,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3061,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T11:39:23Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10913,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2881,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T11:35:37Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10903,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3059,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:31:26Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10885,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3055,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T00:32:40Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10394,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2928,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-11T07:01:48Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"}],\"total\":5}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:20:27 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)",
+      "Transfer-Encoding": "chunked"
+    },
+    "startTime": 197596.278411,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710028898,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm?search=&level=0&alarm-type=ems&page=1&page-size=10&handle-status=1"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 26,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"\",\"data\":{\"list\":[],\"total\":0}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Length": "52",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:20:20 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)"
+    },
+    "startTime": 197588.50847,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710021107,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm?search=&level=0&alarm-type=elec&page=1&page-size=10&handle-status=1"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 47,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"\",\"data\":{\"list\":[{\"id\":10915,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3061,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T11:39:23Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10913,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2881,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T11:35:37Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10903,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3059,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:31:26Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10885,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3055,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T00:32:40Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10394,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2928,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-11T07:01:48Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"}],\"total\":5}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:20:06 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)",
+      "Transfer-Encoding": "chunked"
+    },
+    "startTime": 197575.047388,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786710008050,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm?search=&level=0&alarm-type=ems&page=1&page-size=10&handle-status=1"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 57,
+    "initiator": {
+      "stack": {
+        "callFrames": [
+          {
+            "columnNumber": 36288,
+            "functionName": "Da",
+            "lineNumber": 22,
+            "scriptId": "5",
+            "url": "http://192.168.0.123/assets/index-DFatz3Ak.js"
+          }
+        ]
+      },
+      "type": "script"
+    },
+    "method": "GET",
+    "mimeType": "application/json",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Accept-Language": "en-US",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODY3MTE3MDgsImlhdCI6MTc4NjcwOTkwOCwiaXNzIjoiYWl3YXR0IiwiVXNlcklEIjoxLCJWYWxpZGl0eVBlcmlvZCI6MTgwMDAwMDAwMDAwMH0.elF_qFtxWD4dbakVCNZX1ZFV9p45b24F4sZ9orf-V3o",
+      "Content-type": "application/json",
+      "Referer": "http://192.168.0.123/fault-report",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "{\"code\":0,\"message\":\"\",\"data\":{\"list\":[{\"id\":10915,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3061,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T11:39:23Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10913,\"device_id\":2,\"device_uid\":\"\",\"device_name\":\"emu-master\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2881,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T11:35:37Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10903,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3059,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T08:31:26Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10885,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":3055,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-14T00:32:40Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"},{\"id\":10394,\"device_id\":3,\"device_uid\":\"\",\"device_name\":\"emu-slave\",\"device\":null,\"content\":\"门禁1告警\",\"device_type\":\"\",\"device_type_int\":0,\"alarm_type\":\"ems\",\"source\":2,\"alarm_id\":2928,\"handle_status\":1,\"handle_type\":0,\"level\":1,\"user_id\":0,\"user\":{\"id\":0,\"status\":0,\"full_name\":\"\",\"phone\":\"\",\"department\":\"\",\"duty\":\"\",\"last_login\":null,\"username\":\"\",\"expired_at\":null,\"latest_alive_time\":0,\"user_tag\":\"\",\"role_type\":0,\"validate_period_sec\":0,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"},\"occur_time\":\"2026-08-11T07:01:48Z\",\"handle_time\":\"0001-01-01T00:00:00Z\"}],\"total\":5}}",
+    "responseHeaders": {
+      "Connection": "keep-alive",
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Fri, 14 Aug 2026 12:19:34 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)",
+      "Transfer-Encoding": "chunked"
+    },
+    "startTime": 197543.229144,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786709976238,
+    "type": "Fetch",
+    "url": "http://192.168.0.123/v1/alarm?search=&level=0&alarm-type=&page=1&page-size=10&handle-status=1"
+  },
+  {
+    "base64Encoded": false,
+    "cached": false,
+    "duration": 126,
+    "initiator": {
+      "columnNumber": 0,
+      "lineNumber": 0,
+      "type": "script",
+      "url": "about:client"
+    },
+    "method": "GET",
+    "mimeType": "application/javascript",
+    "protocol": "http/1.1",
+    "remoteAddress": "192.168.0.123",
+    "requestHeaders": {
+      "Origin": "http://192.168.0.123",
+      "Referer": "http://192.168.0.123/operate-home",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    },
+    "responseBody": "import{k as I,a as T,m as M,n as W,i as t,u as Ft,_ as nt}from\"./index-DFatz3Ak.js\";import{d as wt,r as w,c as U,f as Lt,w as Rt,o as bt,M as j,z as L,N as v,y as d,X as c,V as r,A as u,W as o,x as y,h as N,u as R,a_ as ct,$ as b,a$ as K,G as A,K as X}from\"./antv-CToMIxBj.js\";import\"./vue-echarts-C46CWUzL.js\";const mt={1:t.global.t(\"views.FaultReportList.62pav1iy6xg0\"),2:t.global.t(\"views.FaultReportList.62pav1iy72g0\"),3:t.global.t(\"views.FaultReportList.62pav1iy7480\")},dt=Object.freeze({门禁1告警:t.global.t(\"views.FaultReportList.Access Control 1 Alarm\"),门禁2告警:t.global.t(\"views.FaultReportList.Access Control 2 Alarm\"),水浸1告警:t.global.t(\"views.FaultReportList.Water Immersion 1 Alarm\"),水浸2告警:t.global.t(\"views.FaultReportList.Water Immersion 2 Alarm\"),频率异常:t.global.t(\"views.FaultReportList.frequency\"),失压:t.global.t(\"views.FaultReportList.voltage\"),一级设备离线:t.global.t(\"views.FaultReportList.offline\"),\"通信故障/离线\":t.global.t(\"views.FaultReportList.communicationFault\"),北向通信故障:t.global.t(\"views.FaultReportList.northboundFault\"),逆流警报:t.global.t(\"views.FaultReportList.countercurrentAlarm\"),需量警报:t.global.t(\"views.FaultReportList.demandAlarm\"),设备断电告警:t.global.t(\"views.FaultReportList.equipmentAlarm\"),EPO故障:t.global.t(\"views.FaultReportList.EPO Fault\"),\"IGBT OCP故障\":t.global.t(\"views.FaultReportList.IGBT OCP Fault\"),高压侧硬件过压故障:t.global.t(\"views.FaultReportList.High Voltage Side Hardware Overvoltage Fault\"),高压侧硬件过流故障:t.global.t(\"views.FaultReportList.High Voltage Side Hardware Overcurrent Fault\"),\"IGBT 硬件过流故障\":t.global.t(\"views.FaultReportList.IGBT Hardware Overcurrent Fault\"),\"24V辅助电源故障\":t.global.t(\"views.FaultReportList.24V Auxiliary Power Fault\"),风扇故障:t.global.t(\"views.FaultReportList.Fan Fault\"),单板连接故障:t.global.t(\"views.FaultReportList.Single Board Connection Fault\"),功率模块过温:t.global.t(\"views.FaultReportList.Power Module Overtemperature\"),\"±15V辅助电源故障\":t.global.t(\"views.FaultReportList.±15V Auxiliary Power Fault\"),预充电超时故障:t.global.t(\"views.FaultReportList.Precharge Timeout Fault\"),\"低压侧 A 相软件过流故障\":t.global.t(\"views.FaultReportList.Low Voltage Side Phase A Software Overcurrent Fault\"),\"低压侧 B 相软件过流故障\":t.global.t(\"views.FaultReportList.Low Voltage Side Phase B Software Overcurrent Fault\"),\"低压侧 C 相软件过流故障\":t.global.t(\"views.FaultReportList.Low Voltage Side Phase C Software Overcurrent Fault\"),低压侧负端软件过流故障:t.global.t(\"views.FaultReportList.Low Voltage Side Negative Terminal Software Overcurrent Fault\"),模块内部短路故障:t.global.t(\"views.FaultReportList.Module Internal Short Circuit Fault\"),高压侧预充过压故障:t.global.t(\"views.FaultReportList.High Voltage Side Precharge Overvoltage Fault\"),高压侧极性反接故障:t.global.t(\"views.FaultReportList.High Voltage Side Polarity Reverse Fault\"),高压侧短路故障:t.global.t(\"views.FaultReportList.High Voltage Side Short Circuit Fault\"),高压侧运行过压故障:t.global.t(\"views.FaultReportList.High Voltage Side Operation Overvoltage Fault\"),高压侧运行欠压故障:t.global.t(\"views.FaultReportList.High Voltage Side Operation Undervoltage Fault\"),高压侧正负母线不平衡故障:t.global.t(\"views.FaultReportList.High Voltage Side Positive Negative Bus Imbalance Fault\"),与主机模式设置不匹配:t.global.t(\"views.FaultReportList.Mode Setting Mismatch with Host\"),\"控制板 EEROM 故障标志位\":t.global.t(\"views.FaultReportList.Control Board EEPROM Fault Flag\"),\"从机 CAN 通信故障标志位\":t.global.t(\"views.FaultReportList.Slave CAN Communication Fault Flag\"),\"与 EMS 通信故障标志位\":t.global.t(\"views.FaultReportList.EMS Communication Fault Flag\"),绝缘电阻过低故障:t.global.t(\"views.FaultReportList.Insulation Resistance Too Low Fault\"),低压侧欠压故障:t.global.t(\"views.FaultReportList.Low Voltage Side Undervoltage Fault\"),软件瞬态过流故障:t.global.t(\"views.FaultReportList.Software Transient Overcurrent Fault\"),低压侧过压故障:t.global.t(\"views.FaultReportList.Low Voltage Side Overvoltage Fault\"),低压侧过流故障:t.global.t(\"views.FaultReportList.Low Voltage Side Overcurrent Fault\"),低压侧极性反接故障:t.global.t(\"views.FaultReportList.Low Voltage Side Polarity Reverse Fault\"),门禁报警:t.global.t(\"views.FaultReportList.Access Control Alarm\"),水浸报警:t.global.t(\"views.FaultReportList.Water Immersion Alarm\"),消防告警:t.global.t(\"views.FaultReportList.Fire Alarm\"),\"EPO 故障标志\":t.global.t(\"views.FaultReportList.EPO Fault Flag\"),\"IGBT 硬件过流标志\":t.global.t(\"views.FaultReportList.IGBT Hardware Overcurrent Flag\"),母线硬件过压标志:t.global.t(\"views.FaultReportList.Bus Hardware Overvoltage Flag\"),功率模块逐波限流标志:t.global.t(\"views.FaultReportList.Power Module Wave-by-Wave Current Limit Flag\"),平衡模块硬件过流标志:t.global.t(\"views.FaultReportList.Balance Module Hardware Overcurrent Flag\"),\"24V 电源故障标志\":t.global.t(\"views.FaultReportList.24V Power Fault Flag\"),风扇故障标志:t.global.t(\"views.FaultReportList.Fan Fault Flag\"),连接故障标志:t.global.t(\"views.FaultReportList.Connection Fault Flag\"),防雷器故障:t.global.t(\"views.FaultReportList.Surge Protector Fault\"),电感过温故障标志:t.global.t(\"views.FaultReportList.Inductor Overtemperature Fault Flag\"),功率模块过温标志:t.global.t(\"views.FaultReportList.Power Module Overtemperature Flag\"),平衡模块过温标志:t.global.t(\"views.FaultReportList.Balance Module Overtemperature Flag\"),\"15V 电源故障标志\":t.global.t(\"views.FaultReportList.15V Power Fault Flag\"),系统火警故障标志:t.global.t(\"views.FaultReportList.System Fire Alarm Fault Flag\"),电池干接点故障标志:t.global.t(\"views.FaultReportList.Battery Dry Contact Fault Flag\"),干接点过载故障标志:t.global.t(\"views.FaultReportList.Dry Contact Overload Fault Flag\"),环境温度过温故障标志:t.global.t(\"views.FaultReportList.Ambient Temperature Overtemperature Fault Flag\"),干接点过温故障标志:t.global.t(\"views.FaultReportList.Dry Contact Overtemperature Fault Flag\"),\"A 相过压故障标志\":t.global.t(\"views.FaultReportList.Phase A Overvoltage Fault Flag\"),\"B 相过压故障标志\":t.global.t(\"views.FaultReportList.Phase B Overvoltage Fault Flag\"),\"C 相过压故障标志\":t.global.t(\"views.FaultReportList.Phase C Overvoltage Fault Flag\"),\"A 相欠压故障标志\":t.global.t(\"views.FaultReportList.Phase A Undervoltage Fault Flag\"),\"B 相欠压故障标志\":t.global.t(\"views.FaultReportList.Phase B Undervoltage Fault Flag\"),\"C 相欠压故障标志\":t.global.t(\"views.FaultReportList.Phase C Undervoltage Fault Flag\"),电网过频:t.global.t(\"views.FaultReportList.Grid Overfrequency\"),电网欠频:t.global.t(\"views.FaultReportList.Grid Underfrequency\"),电网相序错误:t.global.t(\"views.FaultReportList.Grid Phase Sequence Error\"),\"A 相软件过流\":t.global.t(\"views.FaultReportList.Phase A Software Overcurrent\"),\"B 相软件过流\":t.global.t(\"views.FaultReportList.Phase B Software Overcurrent\"),\"C 相软件过流\":t.global.t(\"views.FaultReportList.Phase C Software Overcurrent\"),电网电压不平衡:t.global.t(\"views.FaultReportList.Grid Voltage Imbalance\"),电网电流不平衡:t.global.t(\"views.FaultReportList.Grid Current Imbalance\"),电网缺相:t.global.t(\"views.FaultReportList.Grid Phase Loss\"),\"N 线过流\":t.global.t(\"views.FaultReportList.Neutral Line Overcurrent\"),预充母线过压:t.global.t(\"views.FaultReportList.Precharge Bus Overvoltage\"),预充母线欠压:t.global.t(\"views.FaultReportList.Precharge Bus Undervoltage\"),不控整流母线过压:t.global.t(\"views.FaultReportList.Uncontrolled Rectifier Bus Overvoltage\"),不控整流母线欠压:t.global.t(\"views.FaultReportList.Uncontrolled Rectifier Bus Undervoltage\"),运行母线过压:t.global.t(\"views.FaultReportList.Operation Bus Overvoltage\"),运行母线欠压:t.global.t(\"views.FaultReportList.Operation Bus Undervoltage\"),正负母线不平衡:t.global.t(\"views.FaultReportList.Positive Negative Bus Imbalance\"),电池欠压:t.global.t(\"views.FaultReportList.Battery Undervoltage\"),电流模式母线欠压:t.global.t(\"views.FaultReportList.Current Mode Bus Undervoltage\"),电池过压:t.global.t(\"views.FaultReportList.Battery Overvoltage\"),直流预充电过流:t.global.t(\"views.FaultReportList.DC Precharge Overcurrent\"),直流过流:t.global.t(\"views.FaultReportList.DC Overcurrent\"),平衡模块软件过流:t.global.t(\"views.FaultReportList.Balance Module Software Overcurrent\"),电池反接:t.global.t(\"views.FaultReportList.Battery Reverse Connection\"),预充电超时:t.global.t(\"views.FaultReportList.Precharge Timeout\"),\"预充电 A 相过流\":t.global.t(\"views.FaultReportList.Precharge Phase A Overcurrent\"),\"预充电 B 相过流\":t.global.t(\"views.FaultReportList.Precharge Phase B Overcurrent\"),\"预充电 C 相过流\":t.global.t(\"views.FaultReportList.Precharge Phase C Overcurrent\"),\"控制板 EEPROM 故障\":t.global.t(\"views.FaultReportList.Control Board EEPROM Fault\"),\"AD 采样零漂故障\":t.global.t(\"views.FaultReportList.AD Sampling Zero Drift Fault\"),后台通讯协议故障:t.global.t(\"views.FaultReportList.Background Communication Protocol Fault\"),绝缘检测故障:t.global.t(\"views.FaultReportList.Insulation Detection Fault\"),\"BMS 电池系统故障\":t.global.t(\"views.FaultReportList.BMS Battery System Fault\"),\"STS 通信故障\":t.global.t(\"views.FaultReportList.STS Communication Fault\"),\"BMS 通信故障\":t.global.t(\"views.FaultReportList.BMS Communication Fault\"),\"从模块 CAN 通信故障\":t.global.t(\"views.FaultReportList.Slave Module CAN Communication Fault\"),\"EMS 通信故障\":t.global.t(\"views.FaultReportList.EMS Communication Fault\"),预充电继电器闭合失败:t.global.t(\"views.FaultReportList.Precharge Relay Close Failure\"),预充电继电器断开失败:t.global.t(\"views.FaultReportList.Precharge Relay Open Failure\"),预充电继电器闭合状态错误:t.global.t(\"views.FaultReportList.Precharge Relay Close Status Error\"),预充电继电器断开状态错误:t.global.t(\"views.FaultReportList.Precharge Relay Open Status Error\"),主继电器闭合失败:t.global.t(\"views.FaultReportList.Main Relay Close Failure\"),主继电器断开失败:t.global.t(\"views.FaultReportList.Main Relay Open Failure\"),主继电器闭合状态错误:t.global.t(\"views.FaultReportList.Main Relay Close Status Error\"),主继电器断开状态错误:t.global.t(\"views.FaultReportList.Main Relay Open Status Error\"),交流主继电器粘连故障:t.global.t(\"views.FaultReportList.AC Main Relay Sticking Fault\"),直流继电器开路故障:t.global.t(\"views.FaultReportList.DC Relay Open Circuit Fault\"),\"逆变电压 A 相过压故障标志\":t.global.t(\"views.FaultReportList.Inverter Voltage Phase A Overvoltage Fault Flag\"),\"逆变电压 B 相过压故障标志\":t.global.t(\"views.FaultReportList.Inverter Voltage Phase B Overvoltage Fault Flag\"),\"逆变电压 C 相过压故障标志\":t.global.t(\"views.FaultReportList.Inverter Voltage Phase C Overvoltage Fault Flag\"),电网孤岛故障标志:t.global.t(\"views.FaultReportList.Grid Islanding Fault Flag\"),系统谐振故障标志:t.global.t(\"views.FaultReportList.System Resonance Fault Flag\"),软件过压过流标志:t.global.t(\"views.FaultReportList.Software Overvoltage Overcurrent Flag\"),高电压穿越超时故障标志:t.global.t(\"views.FaultReportList.High Voltage Ride Through Timeout Fault Flag\"),\"逆变电压 A 相欠压故障标志\":t.global.t(\"views.FaultReportList.Inverter Voltage Phase A Undervoltage Fault Flag\"),\"逆变电压 B 相欠压故障标志\":t.global.t(\"views.FaultReportList.Inverter Voltage Phase B Undervoltage Fault Flag\"),\"逆变电压 C 相欠压故障标志\":t.global.t(\"views.FaultReportList.Inverter Voltage Phase C Undervoltage Fault Flag\"),离网无同步信号故障标志:t.global.t(\"views.FaultReportList.Off-grid No Synchronization Signal Fault Flag\"),离网短路故障标志:t.global.t(\"views.FaultReportList.Off-grid Short Circuit Fault Flag\"),低电压穿越超时故障标志:t.global.t(\"views.FaultReportList.Low Voltage Ride Through Timeout Fault Flag\"),BMU硬件故障:t.global.t(\"views.FaultReportList.BMU Hardware Fault\"),BCU硬件故障:t.global.t(\"views.FaultReportList.BCU Hardware Fault\"),接触器粘连故障:t.global.t(\"views.FaultReportList.Contactor Sticking Fault\"),总压差过大:t.global.t(\"views.FaultReportList.Total Voltage Difference Too High\"),绝缘过低:t.global.t(\"views.FaultReportList.Insulation Too Low\"),单体电压过高:t.global.t(\"views.FaultReportList.Cell Voltage Too High\"),单体温度过高:t.global.t(\"views.FaultReportList.Cell Temperature Too High\"),单体电压更新异常:t.global.t(\"views.FaultReportList.Cell Voltage Update Abnormal\"),极柱温度过高:t.global.t(\"views.FaultReportList.Terminal Temperature Too High\"),放电电流过大:t.global.t(\"views.FaultReportList.Discharge Current Too High\"),绝缘监测故障:t.global.t(\"views.FaultReportList.Insulation Monitoring Fault\"),电池NTC故障:t.global.t(\"views.FaultReportList.Battery NTC Fault\"),端子NTC故障:t.global.t(\"views.FaultReportList.Terminal NTC Fault\"),电池温度故障:t.global.t(\"views.FaultReportList.Battery Temperature Fault\"),单体电压采样故障:t.global.t(\"views.FaultReportList.Cell Voltage Sampling Fault\"),采样芯片故障:t.global.t(\"views.FaultReportList.Sampling Chip Fault\"),电流采样故障:t.global.t(\"views.FaultReportList.Current Sampling Fault\"),单体电压过低:t.global.t(\"views.FaultReportList.Cell Voltage Too Low\"),充电电流过大:t.global.t(\"views.FaultReportList.Charge Current Too High\"),BMU自检:t.global.t(\"views.FaultReportList.BMU Self-check\"),BCU自检:t.global.t(\"views.FaultReportList.BCU Self-check\"),熔断器故障:t.global.t(\"views.FaultReportList.Fuse Fault\"),接触器故障:t.global.t(\"views.FaultReportList.Contactor Fault\"),BMU通信故障:t.global.t(\"views.FaultReportList.BMU Communication Fault\"),BAU通信故障:t.global.t(\"views.FaultReportList.BAU Communication Fault\"),电流传感器故障:t.global.t(\"views.FaultReportList.Current Sensor Fault\"),电压传感器故障:t.global.t(\"views.FaultReportList.Voltage Sensor Fault\"),绝缘监测设备故障:t.global.t(\"views.FaultReportList.Insulation Monitoring Device Fault\"),隔开开关异常断开:t.global.t(\"views.FaultReportList.Isolation Switch Abnormal Open\"),NTC故障:t.global.t(\"views.FaultReportList.NTC Fault\"),PCS通信故障:t.global.t(\"views.FaultReportList.PCS Communication Fault\"),总电压过压一级报警:t.global.t(\"views.FaultReportList.Total Voltage Overvoltage Level 1 Alarm\"),总电压欠压一级报警:t.global.t(\"views.FaultReportList.Total Voltage Undervoltage Level 1 Alarm\"),SOC低一级报警:t.global.t(\"views.FaultReportList.SOC Level-1 Alarm\"),SOC低二级级报警:t.global.t(\"views.FaultReportList.SOC Level-2 Alarm\"),SOC低三级级报警:t.global.t(\"views.FaultReportList.SOC Level-3 Alarm\"),\"BMS 通讯故障\":t.global.t(\"views.FaultReportList.BMS Communication Fault\"),\"PCS 通讯故障\":t.global.t(\"views.FaultReportList.PCS Communication Fault\"),单体过压一级报警:t.global.t(\"views.FaultReportList.Cell Overvoltage Level 1 Alarm\"),单体欠压一级报警:t.global.t(\"views.FaultReportList.Cell Undervoltage Level 1 Alarm\"),放电电流过大一级报警:t.global.t(\"views.FaultReportList.Discharge Current Too High Level 1 Alarm\"),充电电流过大一级报警:t.global.t(\"views.FaultReportList.Charge Current Too High Level 1 Alarm\"),放电电池过温一级报警:t.global.t(\"views.FaultReportList.Discharge Battery Overtemperature Level 1 Alarm\"),放电电池欠温一级报警:t.global.t(\"views.FaultReportList.Discharge Battery Undertemperature Level 1 Alarm\"),充电电池过温一级报警:t.global.t(\"views.FaultReportList.Charge Battery Overtemperature Level 1 Alarm\"),充电电池欠温一级报警:t.global.t(\"views.FaultReportList.Charge Battery Undertemperature Level 1 Alarm\"),绝缘阻值过低一级报警:t.global.t(\"views.FaultReportList.Insulation Resistance Too Low Level 1 Alarm\"),极柱温度过高一级报警:t.global.t(\"views.FaultReportList.Terminal Temperature Too High Level 1 Alarm\"),高压箱连接器温度过高一级报警:t.global.t(\"views.FaultReportList.High Voltage Box Connector Temperature Too High Level 1 Alarm\"),单体压差一级报警:t.global.t(\"views.FaultReportList.Cell Voltage Difference Level 1 Alarm\"),单体温差一级报警:t.global.t(\"views.FaultReportList.Cell Temperature Difference Level 1 Alarm\"),\"SOC 低一级报警\":t.global.t(\"views.FaultReportList.SOC Low Level 1 Alarm\"),总电压过压二级报警:t.global.t(\"views.FaultReportList.Total Voltage Overvoltage Level 2 Alarm\"),总电压欠压二级报警:t.global.t(\"views.FaultReportList.Total Voltage Undervoltage Level 2 Alarm\"),单体过压二级报警:t.global.t(\"views.FaultReportList.Cell Overvoltage Level 2 Alarm\"),单体欠压二级报警:t.global.t(\"views.FaultReportList.Cell Undervoltage Level 2 Alarm\"),放电电流过大二级报警:t.global.t(\"views.FaultReportList.Discharge Current Too High Level 2 Alarm\"),充电电流过大二级报警:t.global.t(\"views.FaultReportList.Charge Current Too High Level 2 Alarm\"),放电电池过温二级报警:t.global.t(\"views.FaultReportList.Discharge Battery Overtemperature Level 2 Alarm\"),放电电池欠温二级报警:t.global.t(\"views.FaultReportList.Discharge Battery Undertemperature Level 2 Alarm\"),充电电池过温二级报警:t.global.t(\"views.FaultReportList.Charge Battery Overtemperature Level 2 Alarm\"),充电电池欠温二级报警:t.global.t(\"views.FaultReportList.Charge Battery Undertemperature Level 2 Alarm\"),绝缘阻值过低二级报警:t.global.t(\"views.FaultReportList.Insulation Resistance Too Low Level 2 Alarm\"),极柱温度过高二级报警:t.global.t(\"views.FaultReportList.Terminal Temperature Too High Level 2 Alarm\"),高压箱连接器温度过高二级报警:t.global.t(\"views.FaultReportList.High Voltage Box Connector Temperature Too High Level 2 Alarm\"),单体压差二级报警:t.global.t(\"views.FaultReportList.Cell Voltage Difference Level 2 Alarm\"),单体温差二级报警:t.global.t(\"views.FaultReportList.Cell Temperature Difference Level 2 Alarm\"),SOC低二级报警:t.global.t(\"views.FaultReportList.SOC Low Level 2 Alarm\"),总电压过压三级报警:t.global.t(\"views.FaultReportList.Total Voltage Overvoltage Level 3 Alarm\"),总电压欠压三级报警:t.global.t(\"views.FaultReportList.Total Voltage Undervoltage Level 3 Alarm\"),单体过压三级报警:t.global.t(\"views.FaultReportList.Cell Overvoltage Level 3 Alarm\"),单体欠压三级报警:t.global.t(\"views.FaultReportList.Cell Undervoltage Level 3 Alarm\"),放电电流过大三级报警:t.global.t(\"views.FaultReportList.Discharge Current Too High Level 3 Alarm\"),充电电流过大三级报警:t.global.t(\"views.FaultReportList.Charge Current Too High Level 3 Alarm\"),放电电池过温三级报警:t.global.t(\"views.FaultReportList.Discharge Battery Overtemperature Level 3 Alarm\"),放电电池欠温三级报警:t.global.t(\"views.FaultReportList.Discharge Battery Undertemperature Level 3 Alarm\"),充电电池过温三级报警:t.global.t(\"views.FaultReportList.Charge Battery Overtemperature Level 3 Alarm\"),充电电池欠温三级报警:t.global.t(\"views.FaultReportList.Charge Battery Undertemperature Level 3 Alarm\"),绝缘阻值过低三级报警:t.global.t(\"views.FaultReportList.Insulation Resistance Too Low Level 3 Alarm\"),极柱温度过高三级报警:t.global.t(\"views.FaultReportList.Terminal Temperature Too High Level 3 Alarm\"),高压箱连接器温度过高三级报警:t.global.t(\"views.FaultReportList.High Voltage Box Connector Temperature Too High Level 3 Alarm\"),单体压差三级报警:t.global.t(\"views.FaultReportList.Cell Voltage Difference Level 3 Alarm\"),单体温差三级报警:t.global.t(\"views.FaultReportList.Cell Temperature Difference Level 3 Alarm\"),SOC低三级报警:t.global.t(\"views.FaultReportList.SOC Low Level 3 Alarm\")}),yt=Object.freeze({未知:t.global.t(\"views.FaultReportList.unknown\"),辅控:t.global.t(\"views.FaultReportList.AuxiliaryControl\"),电表:t.global.t(\"views.FaultReportList.ElectricMeter\"),风冷:t.global.t(\"views.FaultReportList.AirCooling\"),液冷:t.global.t(\"views.FaultReportList.LiquidCooling\"),消防:t.global.t(\"views.FaultReportList.FireProtection\"),压力:t.global.t(\"views.FaultReportList.Pressure\"),逆变:t.global.t(\"views.FaultReportList.Inversion\"),逆变器:t.global.t(\"views.FaultReportList.Inverter\"),电池:t.global.t(\"views.FaultReportList.Battery\")}),Ct={key:0,class:\"warning-statics\"},ht={class:\"current-warpper-left public-style\"},St={class:\"current-warpper-center public-style\"},At={class:\"current-warpper-right public-style\"},Ot={key:1,class:\"warning-statics\"},Tt={class:\"current-warpper-left public-style\"},Bt={class:\"current-warpper-center public-style\"},ft={class:\"current-warpper-right public-style\"},Pt={style:{\"margin-left\":\"10px\"}},Vt={class:\"search-list\"},Nt=nt(wt({__name:\"FaultReportList\",setup(kt){const{t:i}=Ft();let m=w(!1);const D=w(0),g=w(\"1\"),F=w(1),p=w(10);w(!1);const x=w([]),B=w(),f=w(),P=w(!1),Z=U(()=>t.global.locale.value===\"zh-cn\"),J=[{label:i(\"views.FaultReportList.62pav1iy6tk0\"),value:\"\"},{label:\"ems\",value:\"ems\"},{label:\"elec\",value:\"elec\"}],Q=[{label:i(\"views.FaultReportList.62pav1iy6vg0\"),value:\"\"},{label:i(\"views.FaultReportList.62pav1iy6xg0\"),value:1},{label:i(\"views.FaultReportList.62pav1iy72g0\"),value:2},{label:i(\"views.FaultReportList.62pav1iy7480\"),value:3}],l=Lt({search:\"\",level:\"\",alarmType:\"\"});Rt(l,async e=>{await C({...e,level:Number(e.level),page:F.value,pageSize:p.value,handleStatus:Number(g.value)})});const tt=async()=>{await C({...l,level:Number(l.level),page:F.value,pageSize:p.value,handleStatus:Number(g.value)})},et=()=>{l.alarmType=\"\",l.level=\"\",l.search=\"\"},lt=U(()=>({total:D.value,current:F.value,pageSize:p.value,onChange:async(e,a)=>{await C({page:e,pageSize:a,...l,level:Number(l.level),handleStatus:Number(g.value)}),p.value=a,F.value=e}})),at=[{key:\"1\",tab:i(\"views.FaultReportList.62pav1iy5lc0\")},{key:\"2\",tab:i(\"views.FaultReportList.62pav1iy7680\")}],E=[{title:i(\"views.FaultReportList.62pav1iy7800\"),dataIndex:\"index\",align:\"center\",key:\"index\",customRender:(e,a,O)=>`${O+1}`},{title:i(\"views.FaultReportList.62pav1iy79s0\"),dataIndex:\"content\",key:\"content\"},{title:i(\"views.FaultReportList.62pav1iy7bo0\"),key:\"level\",dataIndex:\"level\"},{title:i(\"views.FaultReportList.62pav1iy7gw0\"),key:\"alarmType\",dataIndex:\"alarmType\"},{title:i(\"views.FaultReportList.62pav1iy7io0\"),key:\"deviceType\",dataIndex:\"deviceType\"},{title:i(\"views.FaultReportList.62pav1iy7kw0\"),key:\"deviceName\",dataIndex:\"deviceName\"},{title:i(\"views.FaultReportList.62pav1iy7ms0\"),key:\"deviceId\",dataIndex:\"deviceId\"},{title:i(\"views.FaultReportList.62pav1iy7o80\"),key:\"occurTime\",dataIndex:\"occurTime\"}],ot=U(()=>g.value===\"1\"?[...E,{title:i(\"views.FaultReportList.62pav1iy7ps0\"),key:\"action\"}]:[...E,{title:i(\"views.FaultReportList.62pav1iy7rg0\"),key:\"handleTime\",dataIndex:\"handleTime\"}]),rt=async()=>{try{P.value=!0,await(async()=>await W(`${T}/v1/alarm/batch-handle`,{}))(),P.value=!1,await C({page:1,pageSize:p.value,...l,level:Number(l.level),handleStatus:Number(g.value)})}catch{P.value=!1}},it=async e=>{m.value=!0;try{await(async a=>await W(`${T}/v1/alarm/${a}`,{}))(e),m.value=!1,await C({...l,level:Number(l.level),page:F.value,pageSize:p.value,handleStatus:Number(g.value)})}catch{m.value=!1}},C=async e=>{m.value=!0;try{const a=await(async O=>{const h=await I(`${T}/v1/alarm`,O);return M.toCamelcase(h)})(e);x.value=a.data.list,D.value=a.data.total,m.value=!1}catch{m.value=!1}},$=async()=>{const e=await(async()=>{const a=await I(`${T}/v1/alarm/current`);return M.toCamelcase(a)})();B.value=e.data},st=async()=>{const e=await(async()=>{const a=await I(`${T}/v1/alarm/history`);return M.toCamelcase(a)})();f.value=e.data};return bt(async()=>{await $(),await C({...l,level:Number(l.level),page:F.value,pageSize:p.value,handleStatus:Number(g.value)})}),(e,a)=>{const O=y(\"a-input\"),h=y(\"a-form-item\"),_=y(\"a-select\"),V=y(\"a-button\"),ut=y(\"a-form\"),vt=y(\"a-space\"),gt=y(\"a-table\"),pt=y(\"a-card\");return L(),j(pt,{style:{width:\"100%\",height:\"100%\",\"overflow-y\":\"auto\"},\"tab-list\":at,\"active-tab-key\":g.value,onTabChange:a[3]||(a[3]=k=>(async S=>{g.value=S,S===\"1\"?await $():await st(),await C({...l,level:Number(l.level),page:1,pageSize:p.value,handleStatus:Number(S)}),F.value=1})(k))},{default:v(()=>{var k,S,G,z,Y,q;return[g.value===\"1\"?(L(),d(\"div\",Ct,[r(\"div\",ht,[r(\"p\",null,o(e.$t(\"views.FaultReportList.62pav1iy5lc0\")),1),r(\"h4\",null,o((k=B.value)==null?void 0:k.currentAlarmCount),1)]),r(\"div\",St,[r(\"p\",null,o(e.$t(\"views.FaultReportList.62pav1iy6840\")),1),r(\"h4\",null,o((S=B.value)==null?void 0:S.todayNewAlarmCount),1)]),r(\"div\",At,[r(\"p\",null,o(e.$t(\"views.FaultReportList.62pav1iy6aw0\")),1),r(\"h4\",null,o((G=B.value)==null?void 0:G.sevenBeforeAlarmCount),1)])])):c(\"\",!0),g.value===\"2\"?(L(),d(\"div\",Ot,[r(\"div\",Tt,[r(\"p\",null,o(e.$t(\"views.FaultReportList.62pav1iy6cw0\")),1),r(\"h4\",null,o((z=f.value)==null?void 0:z.historyAlarmCount),1)]),r(\"div\",Bt,[r(\"p\",null,o(e.$t(\"views.FaultReportList.62pav1iy6ew0\")),1),r(\"h4\",null,o((Y=f.value)==null?void 0:Y.todayHandleAlarmCount),1)]),r(\"div\",ft,[r(\"p\",null,o(e.$t(\"views.FaultReportList.62pav1iy6h40\")),1),r(\"h4\",null,o((q=f.value)==null?void 0:q.aveHandleTime),1),r(\"p\",Pt,o(e.$t(\"views.FaultReportList.62pav1iy6j40\")),1)])])):c(\"\",!0),r(\"div\",Vt,[u(ut,{layout:\"inline\",model:l},{default:v(()=>[u(h,null,{default:v(()=>[u(O,{value:l.search,\"onUpdate:value\":a[0]||(a[0]=s=>l.search=s),placeholder:e.$t(\"views.FaultReportList.62pav1iy6l00\")},null,8,[\"value\",\"placeholder\"])]),_:1}),u(h,null,{default:v(()=>[u(_,{options:Q,value:l.level,\"onUpdate:value\":a[1]||(a[1]=s=>l.level=s)},null,8,[\"value\"])]),_:1}),u(h,null,{default:v(()=>[u(_,{options:J,value:l.alarmType,\"onUpdate:value\":a[2]||(a[2]=s=>l.alarmType=s)},null,8,[\"value\"])]),_:1}),u(h,null,{default:v(()=>[u(V,{style:{background:\"#142f5e\"},onClick:et,type:\"primary\",icon:N(R(ct))},{default:v(()=>[b(o(e.$t(\"views.FaultReportList.62pav1iy6nc0\")),1)]),_:1},8,[\"icon\"])]),_:1})]),_:1},8,[\"model\"]),u(vt,null,{default:v(()=>[u(V,{loading:P.value,onClick:rt,type:\"primary\",icon:N(R(K))},{default:v(()=>[b(o(e.$t(\"views.FaultReportList.69ggak3tg7s0\")),1)]),_:1},8,[\"loading\",\"icon\"]),u(V,{onClick:tt,type:\"text\",icon:N(R(K))},{default:v(()=>[b(o(e.$t(\"views.FaultReportList.62pav1iy6ps0\")),1)]),_:1},8,[\"icon\"])]),_:1})]),u(gt,{loading:R(m),pagination:lt.value,columns:ot.value,dataSource:x.value,bordered:!1,rowKey:(s,n)=>n},{bodyCell:v(({column:s,record:n,index:H})=>[s.key===\"index\"?(L(),d(A,{key:0},[b(o(H+1+p.value*(F.value-1)>=10?H+1+p.value*(F.value-1):`0${H+1+p.value*(F.value-1)}`),1)],64)):c(\"\",!0),s.key===\"level\"?(L(),d(A,{key:1},[b(o(R(mt)[n.level]),1)],64)):c(\"\",!0),s.key===\"handleTime\"?(L(),d(A,{key:2},[b(o(R(X)(n.handleTime).utc().local().format(\"YYYY-MM-DD HH:mm:ss\")),1)],64)):c(\"\",!0),s.key===\"occurTime\"?(L(),d(A,{key:3},[b(o(R(X)(n.occurTime).utc().local().format(\"YYYY-MM-DD HH:mm:ss\")),1)],64)):c(\"\",!0),s.key===\"deviceType\"?(L(),d(A,{key:4},[b(o(R(yt)[n.deviceType]||n.deviceType),1)],64)):c(\"\",!0),s.key===\"content\"?(L(),d(A,{key:5},[b(o(Z.value?n.content:R(dt)[n.content]),1)],64)):c(\"\",!0),s.key===\"action\"?(L(),j(V,{key:6,onClick:Ht=>it(n.id),type:\"primary\",loading:R(m)},{default:v(()=>[b(o(e.$t(\"views.FaultReportList.62pav1iy6rk0\")),1)]),_:2},1032,[\"onClick\",\"loading\"])):c(\"\",!0)]),_:1},8,[\"loading\",\"pagination\",\"columns\",\"dataSource\",\"rowKey\"])]}),_:1},8,[\"active-tab-key\"])}}}),[[\"__scopeId\",\"data-v-48dafc74\"]]);export{Nt as default};\n",
+    "responseHeaders": {
+      "Content-Encoding": "gzip",
+      "Content-Type": "application/javascript",
+      "Date": "Wed, 12 Aug 2026 09:13:11 GMT",
+      "ETag": "W/\"68959759-6cf9\"",
+      "Last-Modified": "Fri, 08 Aug 2025 06:21:13 GMT",
+      "Server": "nginx/1.18.0 (Ubuntu)",
+      "Vary": "Accept-Encoding"
+    },
+    "startTime": 197542.730787,
+    "status": 200,
+    "statusText": "OK",
+    "timestamp": 1786709975959,
+    "type": "Script",
+    "url": "http://192.168.0.123/assets/FaultReportList-CAE8uIb7.js"
+  }
+]
