@@ -70,15 +70,15 @@ xattr -dr com.apple.quarantine dist/PCS-Realtime-Monitor.app
 - **Battery (BMS) SOC** – polls the extension's history request `POST /v1/history-data?page=1&page-size=1` (`device_type: 2`, fields `bms_soc` + `bms_running_status`) every 5 seconds for **every BMS device** (default IDs `2, 3`), showing SOC% with a progress bar and status (Standby / Running / Charging / Discharging).
 - **Log out** – stops polling and returns to the login screen.
 
-## Automation console
+## Automation
 
-The **CONTROL** section has an **AUTOMATION CONSOLE** panel that evaluates rule-based PV power adjustments every 30 seconds and applies them automatically. It also shows the live date/time, the current weather, and a running log of every decision.
+The **CONTROL** section evaluates rule-based PV power adjustments every 30 seconds and applies them automatically. **Start Automation** / **Download Log** buttons sit in the CONTROL section; every decision is written to a daily CSV log.
 
 ### Rules (evaluated in priority order)
 
 1. **Rule 3 – Battery SOC** (highest priority)
    - Any BMS SOC ≥ 95% → decrease PV power in 5 kW steps until ESS1/ESS2 PCS active power is inside **−25 … −15 kW** (discharging); if it drops below −25 kW, raise PV instead.
-   - Any BMS SOC ≤ 85% → increase PV power in 5 kW steps while the ESS is charging (negative power), until ESS power becomes positive.
+   - ESS1 **or** ESS2 power is negative (discharging), regardless of the time of day or the hot window → increase PV power in 5 kW steps to drive both ESS units to the positive side and into charging. It keeps raising PV even after they turn positive, and only stops once any BMS reaches 95% SOC; from there the 95% rule takes over and lowers PV again.
 2. **Rule 2 – Hot window** – between 10:00 and 18:00 with outside temperature ≥ 35 °C: set PV power = **|GateMeter| − 20 kW**, nudging up/down in 5 kW steps to keep ESS1/ESS2 PCS power inside **10–20 kW**.
 3. **Rule 1 – Gate meter negative** – GateMeter ≤ 0: set PV power = **|GateMeter| + 20 kW**.
 
@@ -86,7 +86,7 @@ PV power is applied through the same request the **Apply** button uses (`PATCH /
 
 ### Weather
 
-Outside temperature comes from [Open-Meteo](https://open-meteo.com) — no API key — using the machine's location, auto-detected via IP geolocation (ipify + ipapi.co, fallback ipwho.is). Readings are cached for 10 minutes and shown next to the console.
+Outside temperature comes from [Open-Meteo](https://open-meteo.com) — no API key — using the machine's location, auto-detected via IP geolocation (ipify + ipapi.co, fallback ipwho.is). Readings are cached for 10 minutes and shown on the bottom status bar with the location and a live clock.
 
 ### Daily logs
 
@@ -109,3 +109,10 @@ Every automation tick appends a CSV row to `~/.pcs-realtime-monitor/logs/automat
 - Press **Start Automation** (green). The button turns red (**Stop Automation**) while active. The automation worker is registered alongside the realtime workers, so no manual polling setup is needed.
 - Logging out or pressing the button stops automation and resets it to **Start Automation**.
 - The whole feature needs no extra Python packages — only the standard library plus `requests` (already a dependency).
+
+## Bottom status bar and themes
+
+The bottom bar shows the current weather, location and live clock. It also has two icon buttons:
+
+- **⚙ Settings** – opens a dialog to adjust the automation parameters (interval, PV step, PV min/max, hot-temp threshold, SOC high/recover).
+- **🌙 / ☀ Theme** – switches between dark and light mode and rebuilds the dashboard with the matching palette.

@@ -74,6 +74,29 @@ COLOR_GRAY = "#8a8aa3"
 COLOR_LIGHT_GREEN = "#a8f0c0"
 COLOR_INFO = "#54a0e8"
 
+THEMES = {
+    "dark": {
+        "panel": "#1c1d30",
+        "card": "#1f2035",
+        "separator": "#2c2d45",
+        "button": "#3a3a52",
+        "button_hover": "#4a4a66",
+        "text": "#c6c6dd",
+        "accent_hover": "#3aa372",
+        "danger_hover": "#c24444",
+    },
+    "light": {
+        "panel": "#eef1f8",
+        "card": "#ffffff",
+        "separator": "#d5dae6",
+        "button": "#dfe4f0",
+        "button_hover": "#ccd3e6",
+        "text": "#232a3a",
+        "accent_hover": "#3aa372",
+        "danger_hover": "#c24444",
+    },
+}
+
 BMS_STATUS_MAP = {1: "Standby", 2: "Shutdown", 3: "Charging", 4: "Discharging"}
 
 
@@ -126,7 +149,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.sequence_running = False
         self.sequence_status = {}
 
-        self.automation = {"enabled": False, "pv_power": None, "last_action": None}
+        self.automation = {"enabled": False, "pv_power": None, "last_action": None, "charging": False}
         self.auto_settings = {
             "interval": AUTOMATION_INTERVAL,
             "step": AUTOMATION_STEP,
@@ -167,6 +190,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_bottom_weather = None
         self.lbl_bottom_location = None
         self.lbl_bottom_clock = None
+        self.btn_settings = None
+        self.btn_theme = None
+
+        self.theme = "dark"
+        self.colors = THEMES["dark"]
 
         self._window_icon()
         self.build_login()
@@ -343,7 +371,8 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_conn = ctk.CTkLabel(header, text="connected", font=ctk.CTkFont(size=11), text_color=COLOR_GREEN)
         self.lbl_conn.pack(side="left", padx=12)
         self.btn_logout = ctk.CTkButton(header, text="Log out", width=80, height=28, corner_radius=8,
-                                        fg_color="#3a3a52", hover_color="#4a4a66", command=self.logout)
+                                        fg_color=self.colors["button"], hover_color=self.colors["button_hover"],
+                                        command=self.logout)
         self.btn_logout.pack(side="right")
 
         self.content = ctk.CTkScrollableFrame(self.dashboard_view, fg_color="transparent")
@@ -353,13 +382,22 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.build_control_section()
 
         # --- bottom status bar ---
-        bar = ctk.CTkFrame(self.dashboard_view, fg_color="#1c1d30", corner_radius=0)
+        c = self.colors
+        bar = ctk.CTkFrame(self.dashboard_view, fg_color=c["panel"], corner_radius=0)
         bar.grid(row=2, column=0, sticky="ew", pady=(6, 0))
-        self.lbl_bottom_weather = ctk.CTkLabel(bar, text="Weather: --", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
+        self.lbl_bottom_weather = ctk.CTkLabel(bar, text="⛅ Weather: --", font=ctk.CTkFont(size=11), text_color=c["text"])
         self.lbl_bottom_weather.pack(side="left", padx=(16, 8), pady=6)
-        self.lbl_bottom_location = ctk.CTkLabel(bar, text="Location: --", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
+        self.lbl_bottom_location = ctk.CTkLabel(bar, text="📍 Location: --", font=ctk.CTkFont(size=11), text_color=c["text"])
         self.lbl_bottom_location.pack(side="left", padx=8, pady=6)
-        self.lbl_bottom_clock = ctk.CTkLabel(bar, text="", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
+        self.btn_settings = ctk.CTkButton(bar, text="⚙", width=34, height=24, corner_radius=6,
+                                          fg_color=c["button"], hover_color=c["button_hover"],
+                                          command=self.open_settings)
+        self.btn_settings.pack(side="right", padx=(0, 8), pady=6)
+        self.btn_theme = ctk.CTkButton(bar, text="☀" if self.theme == "light" else "🌙", width=34, height=24,
+                                       corner_radius=6, fg_color=c["button"], hover_color=c["button_hover"],
+                                       command=self.toggle_theme)
+        self.btn_theme.pack(side="right", padx=(0, 8), pady=6)
+        self.lbl_bottom_clock = ctk.CTkLabel(bar, text="", font=ctk.CTkFont(size=11), text_color=c["text"])
         self.lbl_bottom_clock.pack(side="right", padx=16, pady=6)
 
         # Power group (left) + Photovoltaic (right) side by side
@@ -418,7 +456,8 @@ class PcsRealtimeMonitor(ctk.CTk):
                                                       [c["card"] for c in self.bms_cards.values()]))
 
     def build_control_section(self):
-        ctl = ctk.CTkFrame(self.content, corner_radius=12, fg_color="#1c1d30")
+        c = self.colors
+        ctl = ctk.CTkFrame(self.content, corner_radius=12, fg_color=c["panel"])
         ctl.grid(row=0, column=0, sticky="ew", pady=(0, 8))
         ctl.grid_columnconfigure(0, weight=1)
 
@@ -444,7 +483,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_seq_status = ctk.CTkLabel(left, text="idle", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
         self.lbl_seq_status.pack(anchor="w", padx=16, pady=(0, 2))
 
-        ctk.CTkFrame(left, height=1, fg_color="#2c2d45").pack(fill="x", padx=16, pady=(0, 4))
+        ctk.CTkFrame(left, height=1, fg_color=c["separator"]).pack(fill="x", padx=16, pady=(0, 4))
 
         pv_row = ctk.CTkFrame(left, fg_color="transparent")
         pv_row.pack(fill="x", padx=16, pady=(0, 2))
@@ -460,59 +499,26 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_pv_power_status = ctk.CTkLabel(left, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
         self.lbl_pv_power_status.pack(anchor="w", padx=16, pady=(0, 2))
 
+        ctk.CTkFrame(left, height=1, fg_color=c["separator"]).pack(fill="x", padx=16, pady=(0, 4))
+
+        auto_row = ctk.CTkFrame(left, fg_color="transparent")
+        auto_row.pack(fill="x", padx=16, pady=(0, 2))
+        ctk.CTkLabel(auto_row, text="Automation", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left", padx=(0, 12))
+        self.btn_automation = ctk.CTkButton(auto_row, text="Start Automation", width=150, height=28, corner_radius=8,
+                                            fg_color=COLOR_GREEN, hover_color=c["accent_hover"],
+                                            command=self.toggle_automation)
+        self.btn_automation.pack(side="left", padx=(0, 8))
+        self.btn_download_log = ctk.CTkButton(auto_row, text="Download Log", width=120, height=28, corner_radius=8,
+                                              fg_color=c["button"], hover_color=c["button_hover"],
+                                              command=self.download_log)
+        self.btn_download_log.pack(side="left")
+
         self.chk_background = ctk.CTkCheckBox(
             left, text="Run in background when the window is closed",
             variable=self.run_in_background, text_color=COLOR_GRAY,
-            font=ctk.CTkFont(size=10), fg_color=COLOR_GREEN, hover_color="#3aa372",
+            font=ctk.CTkFont(size=10), fg_color=COLOR_GREEN, hover_color=c["accent_hover"],
         )
-        self.chk_background.pack(anchor="w", padx=16, pady=(0, 6))
-
-        # --- automation console panel (right) ---
-        right = ctk.CTkFrame(ctl, width=520, height=500, fg_color="#171827")
-        right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
-        right.grid_propagate(False)
-        right.grid_columnconfigure(0, weight=1)
-        right.grid_rowconfigure(1, weight=1)
-
-        ctk.CTkLabel(right, text="AUTOMATION CONSOLE", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_GRAY).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 4))
-
-        self.console = ctk.CTkTextbox(right, height=300, corner_radius=8,
-                                      fg_color="#101120", text_color=COLOR_LIGHT_GREEN,
-                                      font=ctk.CTkFont(size=11))
-        self.console.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 6))
-        self.console.configure(state="disabled")
-        self._log_console("Automation console ready. Press Start Automation to begin.",
-                          COLOR_LIGHT_GREEN)
-
-        self.btn_automation = ctk.CTkButton(right, text="Start Automation", height=28, corner_radius=8,
-                                            fg_color=COLOR_GREEN, hover_color="#3aa372",
-                                            command=self.toggle_automation)
-        self.btn_automation.grid(row=2, column=0, sticky="ew", padx=12, pady=(0, 4))
-
-        self.btn_download_log = ctk.CTkButton(right, text="Download Log", height=28, corner_radius=8,
-                                              fg_color="#3a3a52", hover_color="#4a4a66",
-                                              command=self.download_log)
-        self.btn_download_log.grid(row=3, column=0, sticky="ew", padx=12, pady=(0, 4))
-
-        btn_row = ctk.CTkFrame(right, fg_color="transparent")
-        btn_row.grid(row=4, column=0, sticky="ew", padx=12, pady=(0, 4))
-        btn_row.grid_columnconfigure(0, weight=1)
-        btn_row.grid_columnconfigure(1, weight=1)
-        self.btn_settings = ctk.CTkButton(btn_row, text="Settings", height=28, corner_radius=8,
-                                          fg_color="#3a3a52", hover_color="#4a4a66",
-                                          command=self.open_settings)
-        self.btn_settings.grid(row=0, column=0, sticky="ew", padx=(0, 4))
-        self.btn_theme = ctk.CTkButton(btn_row, text="Theme: Dark", height=28, corner_radius=8,
-                                       fg_color="#3a3a52", hover_color="#4a4a66",
-                                       command=self.toggle_theme)
-        self.btn_theme.grid(row=0, column=1, sticky="ew", padx=(4, 0))
-
-        self.lbl_weather = ctk.CTkLabel(right, text="Weather: --", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
-        self.lbl_weather.grid(row=5, column=0, sticky="w", padx=12, pady=(2, 0))
-
-        self.lbl_clock = ctk.CTkLabel(right, text="", font=ctk.CTkFont(size=11), text_color="#c6c6dd")
-        self.lbl_clock.grid(row=6, column=0, sticky="w", padx=12, pady=(0, 8))
+        self.chk_background.pack(anchor="w", padx=16, pady=(6, 6))
 
     def show_dashboard(self):
         self.current_view = "dashboard"
@@ -524,9 +530,10 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.sequence_running = False
         self.sequence_status = {}
         self.automation["enabled"] = False
+        self.automation["charging"] = False
         if self.btn_automation is not None:
             self.btn_automation.configure(
-                text="Start Automation", fg_color=COLOR_GREEN, hover_color="#3aa372")
+                text="Start Automation", fg_color=COLOR_GREEN, hover_color=self.colors["accent_hover"])
         self.show_login()
         with self.lock:
             self.pv = {"devices": {}, "ts": None, "error": None}
@@ -572,7 +579,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             w.destroy()
         self.power_group_cards = {}
         for name in names:
-            card = ctk.CTkFrame(self.power_group_container, corner_radius=12, fg_color="#1f2035")
+            card = ctk.CTkFrame(self.power_group_container, corner_radius=12, fg_color=self.colors["card"])
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
                          text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
             value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
@@ -589,7 +596,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             w.destroy()
         self.pv_cards = {}
         for name in names:
-            card = ctk.CTkFrame(self.pv_container, corner_radius=12, fg_color="#1f2035")
+            card = ctk.CTkFrame(self.pv_container, corner_radius=12, fg_color=self.colors["card"])
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
                          text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
             value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
@@ -604,7 +611,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             w.destroy()
         self.bms_cards = {}
         for name in names:
-            card = ctk.CTkFrame(self.bms_container, corner_radius=12, fg_color="#1f2035")
+            card = ctk.CTkFrame(self.bms_container, corner_radius=12, fg_color=self.colors["card"])
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
                          text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
             value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
@@ -979,16 +986,17 @@ class PcsRealtimeMonitor(ctk.CTk):
     def toggle_automation(self):
         if self.automation["enabled"]:
             self.automation["enabled"] = False
+            self.automation["charging"] = False
             if self.btn_automation is not None:
                 self.btn_automation.configure(
-                    text="Start Automation", fg_color=COLOR_GREEN, hover_color="#3aa372")
+                    text="Start Automation", fg_color=COLOR_GREEN, hover_color=self.colors["accent_hover"])
             self._log_console("Automation stopped", COLOR_RED)
         else:
             self.automation["enabled"] = True
             self.automation["pv_power"] = self._read_pv_setting()
             if self.btn_automation is not None:
                 self.btn_automation.configure(
-                    text="Stop Automation", fg_color=COLOR_RED, hover_color="#c24444")
+                    text="Stop Automation", fg_color=COLOR_RED, hover_color=self.colors["danger_hover"])
             self._log_console("Automation started", COLOR_GREEN)
             threading.Thread(target=self.automation_tick, daemon=True).start()
 
@@ -1039,12 +1047,12 @@ class PcsRealtimeMonitor(ctk.CTk):
             s = self.auto_settings
             hot = HOT_START_HOUR <= now.hour <= HOT_END_HOUR and temp is not None and temp >= s["hot_temp"]
             high_soc = any(x >= s["soc_high"] for x in socs)
-            recover_soc = any(x <= s["soc_recover"] for x in socs)
             soc = max(socs) if socs else None
             current_pv = self.automation.get("pv_power") or self._read_pv_setting()
             target = current_pv
             rule = "idle"
             action = "no action"
+            charging = bool(self.automation.get("charging"))
 
             if high_soc:
                 rule = "rule3-soc-high"
@@ -1059,33 +1067,45 @@ class PcsRealtimeMonitor(ctk.CTk):
                         action = "SOC>=95, ESS in -25..-15, hold"
                 else:
                     action = "SOC>=95, waiting for ESS data"
-            elif recover_soc:
-                rule = "rule3-soc-recover"
-                if ess1 is not None and ess2 is not None and (ess1 < 0 or ess2 < 0):
+                charging = False
+            elif ess1 is not None and ess2 is not None and (ess1 < 0 or ess2 < 0):
+                charging = True
+                rule = "rule3-charge"
+                target = current_pv + s["step"]
+                action = "ESS negative, raise PV to charge until 95%"
+            elif charging:
+                if soc is not None and soc < s["soc_high"]:
+                    rule = "rule3-charge"
                     target = current_pv + s["step"]
-                    action = "SOC<=85, increase PV to charge ESS"
+                    action = "charging, keep raising PV until 95%"
                 else:
-                    action = "SOC<=85, ESS positive, hold"
-            elif hot:
-                rule = "rule2-hot"
-                target = max(s["pv_min"], gate - 20.0)
-                if ess1 is not None and ess2 is not None:
-                    if ess1 < ESS_CHARGE_RANGE[0] or ess2 < ESS_CHARGE_RANGE[0]:
-                        target += s["step"]
-                        action = "hot, PV=gate-20, raise to keep ESS>=10"
-                    elif ess1 > ESS_CHARGE_RANGE[1] or ess2 > ESS_CHARGE_RANGE[1]:
-                        target -= s["step"]
-                        action = "hot, PV=gate-20, lower to keep ESS<=20"
-                    else:
-                        action = "hot, PV=gate-20, ESS in 10..20"
-                else:
-                    action = "hot, PV=gate-20"
-            elif gate_raw <= 0.0:
-                rule = "rule1-gate-negative"
-                target = max(s["pv_min"], gate + 20.0)
-                action = "gate<=0, PV=abs(gate)+20"
+                    charging = False
+                    action = "charging done"
             else:
-                action = "gate>0, hold"
+                charging = False
+            self.automation["charging"] = charging
+
+            if not high_soc and not charging:
+                if hot:
+                    rule = "rule2-hot"
+                    target = max(s["pv_min"], gate - 20.0)
+                    if ess1 is not None and ess2 is not None:
+                        if ess1 < ESS_CHARGE_RANGE[0] or ess2 < ESS_CHARGE_RANGE[0]:
+                            target += s["step"]
+                            action = "hot, PV=gate-20, raise to keep ESS>=10"
+                        elif ess1 > ESS_CHARGE_RANGE[1] or ess2 > ESS_CHARGE_RANGE[1]:
+                            target -= s["step"]
+                            action = "hot, PV=gate-20, lower to keep ESS<=20"
+                        else:
+                            action = "hot, PV=gate-20, ESS in 10..20"
+                    else:
+                        action = "hot, PV=gate-20"
+                elif gate_raw <= 0.0:
+                    rule = "rule1-gate-negative"
+                    target = max(s["pv_min"], gate + 20.0)
+                    action = "gate<=0, PV=abs(gate)+20"
+                else:
+                    action = "gate>0, hold"
 
             target = max(s["pv_min"], min(s["pv_max"], target))
             applied = False
@@ -1228,11 +1248,11 @@ class PcsRealtimeMonitor(ctk.CTk):
 
     def _set_bottom_weather(self, text):
         if self.lbl_bottom_weather is not None:
-            self.lbl_bottom_weather.configure(text=text)
+            self.lbl_bottom_weather.configure(text=f"⛅ {text}")
 
     def _set_location_label(self, city):
         if self.lbl_bottom_location is not None:
-            self.lbl_bottom_location.configure(text=f"Location: {city}")
+            self.lbl_bottom_location.configure(text=f"📍 Location: {city}")
 
     def open_settings(self):
         fields = [
@@ -1272,17 +1292,25 @@ class PcsRealtimeMonitor(ctk.CTk):
         ctk.CTkButton(top, text="Save", width=140, height=30, corner_radius=8,
                       command=save).grid(row=len(fields), column=0, columnspan=2, pady=18)
 
-    def toggle_theme(self):
-        if ctk.get_appearance_mode() == "dark":
-            ctk.set_appearance_mode("light")
-            if self.btn_theme is not None:
-                self.btn_theme.configure(text="Theme: Light")
-            self._log_console("Switched to light theme", COLOR_LIGHT_GREEN)
+    def rebuild_dashboard(self):
+        try:
+            self.dashboard_view.destroy()
+        except Exception:
+            pass
+        self.build_dashboard()
+        if self.current_view == "dashboard":
+            self.show_dashboard()
         else:
-            ctk.set_appearance_mode("dark")
-            if self.btn_theme is not None:
-                self.btn_theme.configure(text="Theme: Dark")
-            self._log_console("Switched to dark theme", COLOR_LIGHT_GREEN)
+            self.dashboard_view.grid_remove()
+
+    def toggle_theme(self):
+        mode = "light" if self.theme == "dark" else "dark"
+        ctk.set_appearance_mode(mode)
+        self.theme = mode
+        self.colors = THEMES[mode]
+        self.rebuild_dashboard()
+        if self.btn_theme is not None:
+            self.btn_theme.configure(text="☀" if mode == "light" else "🌙")
 
     # ------------------------------------------------------------ ui refresh
     def refresh_ui(self):
