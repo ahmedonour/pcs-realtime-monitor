@@ -68,6 +68,7 @@ xattr -dr com.apple.quarantine dist/PCS-Realtime-Monitor.app
 - **Login screen first** – enter server URL, username and password (defaults: `http://192.168.0.123`, `admin` / `aiWatt+0`) and press **Login**. Only after a successful login does the dashboard appear.
 - **Photovoltaic devices (PV1..PV5)** – subscribes to the realtime SSE stream `GET /v1/sse/photovoltaic?purpose=2&pageSize=12&page=1` every 1 second and shows **one card per device** with its name and `alternating_current_output_power` in kW. The `list` of devices is parsed automatically (falls back to single-device events).
 - **Battery (BMS) SOC** – polls the extension's history request `POST /v1/history-data?page=1&page-size=1` (`device_type: 2`, fields `bms_soc` + `bms_running_status`) every 5 seconds for **every BMS device** (default IDs `2, 3`), showing SOC% with a progress bar and status (Standby / Running / Charging / Discharging).
+- **Active faults** – polls `GET /v1/alarm?page=1&page-size=50&handle-status=1` every second and shows a scrollable **FAULTS** panel beside the battery cards: each row shows the device name, alarm content and occurrence time (critical alarms in red, warnings in orange).
 - **Log out** – stops polling and returns to the login screen.
 
 ## Automation

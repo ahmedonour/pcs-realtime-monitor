@@ -41,6 +41,8 @@ BMS_DEVICE_IDS = [2, 3]
 BMS_INTERVAL = 5.0  # seconds (matches the extension)
 POWER_GROUP_INTERVAL = 1.0  # seconds (power group is requested every 1s)
 POWER_GROUP_DEVICES = ["GateMeter", "ESS1 master", "ESS2 slave"]
+FAULT_INTERVAL = 1.0  # seconds (active faults are polled every 1s)
+FAULT_PAGE_SIZE = 50
 RECONNECT_MAX_BACKOFF = 30.0  # seconds between retries while disconnected
 
 # --- automation ---
@@ -70,6 +72,7 @@ PV_CHARGE_DEVICE_IDS = [1, 2, 3, 4, 6]
 
 COLOR_GREEN = "#4cc38a"
 COLOR_RED = "#e65454"
+COLOR_ORANGE = "#e6a33c"
 COLOR_GRAY = "#8a8aa3"
 COLOR_LIGHT_GREEN = "#a8f0c0"
 COLOR_INFO = "#54a0e8"
@@ -139,6 +142,8 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.pv = {"devices": {}, "ts": None, "error": None}
         self.bms = {"devices": {}, "ts": None, "error": None}
         self.power_group = {"devices": {}, "ts": None, "error": None}
+        self.faults = {"items": [], "ts": None, "error": None}
+        self._faults_rendered = None
         self.stop_event = threading.Event()
         self.workers = []
         self.login_lock = threading.Lock()
@@ -192,6 +197,8 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_bottom_clock = None
         self.btn_settings = None
         self.btn_theme = None
+        self.fault_scroll = None
+        self.lbl_fault_ts = None
 
         self.theme = "dark"
         self.colors = THEMES["dark"]
@@ -440,7 +447,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             "<Configure>", lambda e: self._flow_cards(self.pv_container,
                                                       [c["card"] for c in self.pv_cards.values()]))
 
-        # Battery section
+        # Battery + Faults section
         bms_head = ctk.CTkFrame(self.content, fg_color="transparent")
         bms_head.grid(row=2, column=0, sticky="ew", pady=(8, 0))
         bms_head.grid_columnconfigure(0, weight=1)
@@ -449,11 +456,29 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_bms_ts = ctk.CTkLabel(bms_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
         self.lbl_bms_ts.pack(side="right")
 
-        self.bms_container = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.bms_container.grid(row=3, column=0, sticky="ew", pady=(4, 2))
+        bms_row = ctk.CTkFrame(self.content, fg_color="transparent")
+        bms_row.grid(row=3, column=0, sticky="ew", pady=(4, 2))
+        bms_row.grid_columnconfigure(1, weight=1)
+
+        self.bms_container = ctk.CTkFrame(bms_row, fg_color="transparent")
+        self.bms_container.grid(row=0, column=0, sticky="nw", padx=(0, 12))
         self.bms_container.bind(
             "<Configure>", lambda e: self._flow_cards(self.bms_container,
                                                       [c["card"] for c in self.bms_cards.values()]))
+
+        fault_col = ctk.CTkFrame(bms_row, fg_color="transparent")
+        fault_col.grid(row=0, column=1, sticky="nsew")
+        fault_head = ctk.CTkFrame(fault_col, fg_color="transparent")
+        fault_head.pack(fill="x")
+        fault_head.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(fault_head, text="FAULTS", font=ctk.CTkFont(size=11, weight="bold"),
+                     text_color=COLOR_RED).pack(side="left")
+        self.lbl_fault_ts = ctk.CTkLabel(fault_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_fault_ts.pack(side="right")
+
+        self.fault_scroll = ctk.CTkScrollableFrame(fault_col, height=230, corner_radius=12,
+                                                   fg_color=self.colors["panel"])
+        self.fault_scroll.pack(fill="both", expand=True, pady=(4, 0))
 
     def build_control_section(self):
         c = self.colors
@@ -538,6 +563,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             self.pv = {"devices": {}, "ts": None, "error": None}
             self.bms = {"devices": {}, "ts": None, "error": None}
             self.power_group = {"devices": {}, "ts": None, "error": None}
+            self.faults = {"items": [], "ts": None, "error": None}
             self.conn = {"status": "idle", "error": None}
 
     # ------------------------------------------------------------ cards
@@ -769,7 +795,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.stop_event.clear()
         if self.workers:
             return
-        for target in (self.power_group_worker, self.pv_worker, self.bms_worker, self.automation_worker):
+        for target in (self.power_group_worker, self.pv_worker, self.bms_worker, self.fault_worker, self.automation_worker):
             t = threading.Thread(target=target, daemon=True)
             t.start()
             self.workers.append(t)
@@ -961,6 +987,47 @@ class PcsRealtimeMonitor(ctk.CTk):
                     self.token = None
                 backoff = min(backoff * 2, RECONNECT_MAX_BACKOFF)
             self.stop_event.wait(backoff if backoff != 1.0 else BMS_INTERVAL)
+
+    @staticmethod
+    def _fmt_fault_time(t):
+        try:
+            dt = datetime.fromisoformat((t or "").replace("Z", "+00:00"))
+            return dt.strftime("%m-%d %H:%M")
+        except Exception:
+            return (t or "")[:16]
+
+    def fault_worker(self):
+        backoff = 1.0
+        while not self.stop_event.is_set():
+            try:
+                if not self.token:
+                    self.login()
+                url = (f"{self.settings['base_url']}/v1/alarm?search=&level=0&alarm-type="
+                       f"&page=1&page-size={FAULT_PAGE_SIZE}&handle-status=1")
+                resp = self.session.get(url, headers=self._headers(), timeout=(5, 10))
+                resp.raise_for_status()
+                data = resp.json()
+                items = (data.get("data") or {}).get("list") or []
+                faults = []
+                for it in items:
+                    faults.append({
+                        "device": it.get("device_name") or f"device {it.get('device_id')}",
+                        "content": it.get("content") or "",
+                        "level": it.get("level") or 0,
+                        "time": self._fmt_fault_time(it.get("occur_time")),
+                    })
+                with self.lock:
+                    self.faults = {"items": faults, "ts": datetime.now().strftime("%H:%M:%S"), "error": None}
+                self._set_conn("connected")
+                backoff = 1.0
+            except Exception as e:
+                with self.lock:
+                    self.faults = {"items": [], "ts": None, "error": str(e)}
+                self._set_conn("error", str(e))
+                if self._is_auth_error(e):
+                    self.token = None
+                backoff = min(backoff * 2, RECONNECT_MAX_BACKOFF)
+            self.stop_event.wait(backoff if backoff != 1.0 else FAULT_INTERVAL)
 
     # ------------------------------------------------------------ automation
     def _ui(self, fn, *args):
@@ -1309,6 +1376,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             with self.lock:
                 pv = dict(self.pv)
                 bms = dict(self.bms)
+                faults = dict(self.faults)
                 seq = dict(self.sequence_status)
                 conn = dict(self.conn)
 
@@ -1404,6 +1472,36 @@ class PcsRealtimeMonitor(ctk.CTk):
                         card["progress"].set(0)
                     status = BMS_STATUS_MAP.get(info.get("status"), "-")
                     card["status"].configure(text=f"status: {status}")
+
+            # --- faults ---
+            fault_items = faults.get("items") or []
+            if self.fault_scroll is not None:
+                if faults.get("error"):
+                    self.lbl_fault_ts.configure(text=f"connection error: {faults['error'][:50]}", text_color=COLOR_RED)
+                else:
+                    self.lbl_fault_ts.configure(text=("updated " + faults["ts"] if faults.get("ts") else "waiting for data..."),
+                                                text_color=COLOR_GRAY)
+                key = (faults.get("ts"), tuple((f["device"], f["content"], f["level"], f["time"]) for f in fault_items))
+                if key != self._faults_rendered:
+                    self._faults_rendered = key
+                    for w in getattr(self.fault_scroll, "winfo_children", lambda: [])():
+                        w.destroy()
+                    if not fault_items:
+                        ctk.CTkLabel(self.fault_scroll, text="no active faults", font=ctk.CTkFont(size=12),
+                                     text_color=COLOR_GRAY).pack(pady=10)
+                    for f in fault_items:
+                        level = int(f.get("level") or 0)
+                        row = ctk.CTkFrame(self.fault_scroll, fg_color="transparent")
+                        row.pack(fill="x", padx=6, pady=(0, 5))
+                        color = COLOR_RED if level >= 1 else COLOR_ORANGE
+                        top = ctk.CTkFrame(row, fg_color="transparent")
+                        top.pack(fill="x")
+                        ctk.CTkLabel(top, text=f.get("device", "device"), font=ctk.CTkFont(size=11, weight="bold"),
+                                     text_color=color).pack(side="left")
+                        ctk.CTkLabel(top, text=f.get("time", ""), font=ctk.CTkFont(size=10),
+                                     text_color=COLOR_GRAY).pack(side="right")
+                        ctk.CTkLabel(row, text=f.get("content", ""), font=ctk.CTkFont(size=11),
+                                     text_color=self.colors["text"], wraplength=420, justify="left").pack(fill="x", anchor="w")
         self.after(200, self.refresh_ui)
 
 
