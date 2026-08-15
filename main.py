@@ -62,9 +62,12 @@ GATE_STABLE_BAND = 1.0  # kW: gate considered stable if it moves less than this
 GATE_STABLE_TICKS = 2  # consecutive stable readings before "gate stable"
 ESS_CHARGE_RANGE = (10.0, 20.0)  # target ESS PCS power during hot window
 LOG_DIR = Path.home() / ".pcs-realtime-monitor" / "logs"
-WEATHER_CACHE_SECONDS = 600  # refetch temperature at most every 10 min
+WEATHER_CACHE_SECONDS = 600  # refetch weather at most every 10 min
+CLOUD_COVER_LIMIT = 60  # % cloud cover above which PV raising pauses during charging
+RAINY_CODES = {45, 48, 51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 71, 73, 75, 77,
+               80, 81, 82, 85, 86, 95, 96, 99}  # fog, rain, snow, thunderstorm
 LOG_FIELDS = ["timestamp", "rule", "action", "gate_kw", "ess1_kw", "ess2_kw",
-              "pv_current_kw", "pv_target_kw", "temp_c", "soc", "applied"]
+              "pv_current_kw", "pv_target_kw", "temp_c", "cloud", "soc", "applied"]
 
 SEQUENCE_STEPS = [
     ("pcs_device_stop", "Stop device"),
@@ -170,6 +173,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             "pv_min": PV_POWER_MIN,
             "pv_max": PV_POWER_MAX,
             "hot_temp": HOT_TEMP,
+            "cloud_limit": CLOUD_COVER_LIMIT,
             "soc_high": SOC_HIGH,
             "soc_recover": SOC_RECOVER,
         }
@@ -1160,7 +1164,10 @@ class PcsRealtimeMonitor(ctk.CTk):
                     action = "charging until 95%, waiting for ESS data"
                 else:
                     ess_total = ess1 + ess2
-                    if ess_total < 0.0:
+                    if self._is_cloudy():
+                        self._gate_stable(gate_raw)
+                        action = "cloudy, stop raising until clouds clear"
+                    elif ess_total < 0.0:
                         target = current_pv + s["step"]
                         action = "ESS negative, raise PV to charge until 95%"
                     elif abs(gate_raw) <= GATE_ZERO_TOL and ess_total > ESS_CHARGE_STOP_TOTAL:
@@ -1190,8 +1197,11 @@ class PcsRealtimeMonitor(ctk.CTk):
                     action = "hot, PV=gate-20"
             elif gate_raw <= 0.0:
                 rule = "rule1-gate-negative"
-                target = max(s["pv_min"], gate + 20.0)
-                action = "gate<=0, PV=abs(gate)+20"
+                if self._is_cloudy():
+                    action = "gate<=0, cloudy, hold PV (no raise to gate+20)"
+                else:
+                    target = max(s["pv_min"], gate + 20.0)
+                    action = "gate<=0, PV=abs(gate)+20"
             else:
                 action = "gate>0, hold"
 
@@ -1222,6 +1232,7 @@ class PcsRealtimeMonitor(ctk.CTk):
                 "pv_current_kw": f"{current_pv:.1f}",
                 "pv_target_kw": f"{target:.1f}",
                 "temp_c": f"{temp:.1f}" if temp is not None else "",
+                "cloud": f"{self.weather_cache.get('cloud_cover'):.0f}" if self.weather_cache and self.weather_cache.get("cloud_cover") is not None else "",
                 "soc": f"{soc:.1f}" if soc is not None else "",
                 "applied": "yes" if applied else "no",
             })
@@ -1318,17 +1329,35 @@ class PcsRealtimeMonitor(ctk.CTk):
         try:
             data = requests.get(
                 "https://api.open-meteo.com/v1/forecast",
-                params={"latitude": loc["lat"], "longitude": loc["lon"], "current": "temperature_2m"},
+                params={"latitude": loc["lat"], "longitude": loc["lon"],
+                        "current": "temperature_2m,cloud_cover,weather_code"},
                 timeout=8).json()
-            temp = data["current"]["temperature_2m"]
-            self.weather_cache = {"ts": now, "temp": temp}
+            cur = data["current"]
+            temp = cur["temperature_2m"]
+            cloud = cur.get("cloud_cover")
+            wcode = cur.get("weather_code")
+            self.weather_cache = {"ts": now, "temp": temp,
+                                  "cloud_cover": cloud, "weather_code": wcode}
             city = (loc.get("city") or "").strip()
-            self._ui(self._set_weather_label,
-                     f"Weather: {temp:.1f}°C {city}".strip())
-            self._ui(self._set_bottom_weather, f"Weather: {temp:.1f}°C")
+            label = f"Weather: {temp:.1f}°C"
+            if cloud is not None:
+                label += f" ☁ {cloud:.0f}%"
+            self._ui(self._set_weather_label, label + (f" {city}" if city else ""))
+            self._ui(self._set_bottom_weather, label)
             return temp
         except Exception:
             return None
+
+    def _is_cloudy(self):
+        self._get_temperature()
+        cache = self.weather_cache
+        if not cache:
+            return None
+        cc = cache.get("cloud_cover")
+        limit = self.auto_settings.get("cloud_limit", CLOUD_COVER_LIMIT)
+        if cc is not None and cc >= limit:
+            return True
+        return cache.get("weather_code") in RAINY_CODES
 
     def _set_weather_label(self, text):
         if self.lbl_weather is not None:
@@ -1349,6 +1378,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             ("pv_min", "PV min (kW)"),
             ("pv_max", "PV max (kW)"),
             ("hot_temp", "Hot temp threshold (°C)"),
+            ("cloud_limit", "Cloud cover stop (%)"),
             ("soc_high", "SOC high (%)"),
             ("soc_recover", "SOC recover (%)"),
         ]

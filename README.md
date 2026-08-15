@@ -78,16 +78,16 @@ The **CONTROL** section evaluates rule-based PV power adjustments every 30 secon
 ### Rules (evaluated in priority order)
 
 1. **Rule 3 – Battery SOC** (highest priority)
-   - **Charging** (SOC ≤ 85% starts a charge phase that runs until 95%): increase PV power in 5 kW steps while the ESS is draining or charging below 30 kW total, and stop raising once **the gate meter is ~0 kW and ESS1+ESS2 exceed 30 kW**, or once **the gate meter is stable** — the remaining SOC is reached without raising PV further.
+   - **Charging** (SOC ≤ 85% starts a charge phase that runs until 95%): increase PV power in 5 kW steps while the ESS is draining or charging below 30 kW total, and stop raising once **the gate meter is ~0 kW and ESS1+ESS2 exceed 30 kW**, once **the gate meter is stable**, or while **the sky is cloudy/rainy** (cloud cover ≥ the configured threshold or a rain/fog/snow/thunder weather code) — PV raising pauses until the clouds clear.
    - **Discharging** (any BMS SOC ≥ 95%): decrease PV power in 5 kW steps until **both** ESS1 and ESS2 reach **−30 kW** (discharging). Once reached, lowering stops and is **locked** — it won't lower again even if the ESS bounces back toward −2 kW, but the lock is released as soon as **both** ESS1 and ESS2 turn positive (charging again), allowing lowering to resume.
 2. **Rule 2 – Hot window** – between 10:00 and 18:00 with outside temperature ≥ 35 °C: set PV power = **|GateMeter| − 20 kW**, nudging up/down in 5 kW steps to keep ESS1/ESS2 PCS power inside **10–20 kW**.
-3. **Rule 1 – Gate meter negative** – GateMeter ≤ 0: set PV power = **|GateMeter| + 20 kW**.
+3. **Rule 1 – Gate meter negative** – GateMeter ≤ 0: set PV power = **|GateMeter| + 20 kW**. When it's cloudy/rainy this raise is **skipped** (PV is held) because cloudy skies can't deliver the extra power.
 
 PV power is applied through the same request the **Apply** button uses (`PATCH /v1/photovoltaic-charge/2`). Gate power comes from `GateMeter.total_active` and ESS power from `pcs_total_active_power`, both read from the `/v1/sse/power-group` stream.
 
 ### Weather
 
-Outside temperature comes from [Open-Meteo](https://open-meteo.com) — no API key — using the machine's location, auto-detected via IP geolocation (ipify + ipapi.co, fallback ipwho.is). Readings are cached for 10 minutes and shown on the bottom status bar with the location and a live clock.
+Outside temperature and cloud cover come from [Open-Meteo](https://open-meteo.com) — no API key — using the machine's location, auto-detected via IP geolocation (ipify + ipapi.co, fallback ipwho.is). Readings are cached for 10 minutes and shown on the bottom status bar with the location and a live clock. Cloud cover also drives the charging rule: when cloud cover reaches the configurable threshold (**Cloud cover stop %**, default 60) or a rain/fog/snow/thunder weather code is reported, PV raising pauses until the clouds clear.
 
 ### Daily logs
 
@@ -100,7 +100,7 @@ Every automation tick appends a CSV row to `~/.pcs-realtime-monitor/logs/automat
 | `action` | What the rule decided |
 | `gate_kw` / `ess1_kw` / `ess2_kw` | Current GateMeter / ESS1 / ESS2 power (kW) |
 | `pv_current_kw` / `pv_target_kw` | PV power before / after the decision (kW) |
-| `temp_c` / `soc` | Temperature (°C) / highest SOC (%) at decision time |
+| `temp_c` / `cloud` / `soc` | Temperature (°C) / cloud cover (%) / highest SOC (%) at decision time |
 | `applied` | `yes` if the PV setpoint was changed |
 
 **Download Log** opens a picker of the available days and saves the chosen CSV to any location.
