@@ -78,8 +78,8 @@ The **CONTROL** section evaluates rule-based PV power adjustments every 30 secon
 ### Rules (evaluated in priority order)
 
 1. **Rule 3 – Battery SOC** (highest priority)
-   - Any BMS SOC ≥ 95% → decrease PV power in 5 kW steps until ESS1/ESS2 PCS active power is inside **−25 … −15 kW** (discharging); if it drops below −25 kW, raise PV instead.
-   - Any BMS SOC ≤ 85% → increase PV power in 5 kW steps while the ESS is charging (negative power), until ESS power becomes positive.
+   - **Charging** (SOC ≤ 85% starts a charge phase that runs until 95%): increase PV power in 5 kW steps while the ESS is draining or charging below 30 kW total, and stop raising once **the gate meter is ~0 kW and ESS1+ESS2 exceed 30 kW**, or once **the gate meter is stable** — the remaining SOC is reached without raising PV further.
+   - **Discharging** (any BMS SOC ≥ 95%): decrease PV power in 5 kW steps until **both** ESS1 and ESS2 reach **−30 kW** (discharging). Once reached, lowering stops and is **locked** — it won't lower again even if the ESS bounces back toward −2 kW, but the lock is released as soon as **both** ESS1 and ESS2 turn positive (charging again), allowing lowering to resume.
 2. **Rule 2 – Hot window** – between 10:00 and 18:00 with outside temperature ≥ 35 °C: set PV power = **|GateMeter| − 20 kW**, nudging up/down in 5 kW steps to keep ESS1/ESS2 PCS power inside **10–20 kW**.
 3. **Rule 1 – Gate meter negative** – GateMeter ≤ 0: set PV power = **|GateMeter| + 20 kW**.
 
@@ -96,7 +96,7 @@ Every automation tick appends a CSV row to `~/.pcs-realtime-monitor/logs/automat
 | Column | Meaning |
 |--------|---------|
 | `timestamp` | When the rule ran |
-| `rule` | Rule id (`rule1-gate-negative`, `rule2-hot`, `rule3-soc-high`, `rule3-soc-recover`, `idle`) |
+| `rule` | Rule id (`rule1-gate-negative`, `rule2-hot`, `rule3-soc-high`, `rule3-charge`, `idle`) |
 | `action` | What the rule decided |
 | `gate_kw` / `ess1_kw` / `ess2_kw` | Current GateMeter / ESS1 / ESS2 power (kW) |
 | `pv_current_kw` / `pv_target_kw` | PV power before / after the decision (kW) |
