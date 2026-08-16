@@ -43,7 +43,7 @@ BMS_DEVICE_IDS = [2, 3]
 BMS_INTERVAL = 5.0  # seconds (matches the extension)
 POWER_GROUP_INTERVAL = 1.0  # seconds (power group is requested every 1s)
 POWER_GROUP_DEVICES = ["GateMeter", "ESS1 master", "ESS2 slave"]
-FAULT_INTERVAL = 1.0  # seconds (alarms are polled every 1s)
+FAULT_INTERVAL = 30.0  # seconds (alarms are polled every 30s)
 FAULT_PAGE_SIZE = 100
 FAULT_HANDLE_STATUS = 2
 RECONNECT_MAX_BACKOFF = 30.0  # seconds between retries while disconnected
@@ -155,6 +155,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.faults = {"items": [], "ts": None, "error": None}
         self._faults_rendered = None
         self.stop_event = threading.Event()
+        self.fault_refresh_event = threading.Event()
         self.workers = []
         self.login_lock = threading.Lock()
         self.conn = {"status": "idle", "error": None}
@@ -488,6 +489,9 @@ class PcsRealtimeMonitor(ctk.CTk):
         fault_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(fault_head, text="FAULTS", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_RED).pack(side="left")
+        ctk.CTkButton(fault_head, text="↻ Refresh", width=80, height=24, corner_radius=6,
+                      fg_color=self.colors["button"], hover_color=self.colors["button_hover"],
+                      command=self.refresh_faults).pack(side="right", padx=(8, 0))
         self.lbl_fault_ts = ctk.CTkLabel(fault_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
         self.lbl_fault_ts.pack(side="right")
 
@@ -1014,6 +1018,7 @@ class PcsRealtimeMonitor(ctk.CTk):
     def fault_worker(self):
         backoff = 1.0
         while not self.stop_event.is_set():
+            self.fault_refresh_event.clear()
             try:
                 if not self.token:
                     self.login()
@@ -1043,7 +1048,17 @@ class PcsRealtimeMonitor(ctk.CTk):
                 if self._is_auth_error(e):
                     self.token = None
                 backoff = min(backoff * 2, RECONNECT_MAX_BACKOFF)
-            self.stop_event.wait(backoff if backoff != 1.0 else FAULT_INTERVAL)
+            self.fault_refresh_event.clear()
+            remaining = backoff if backoff != 1.0 else FAULT_INTERVAL
+            while remaining > 0 and not self.stop_event.is_set():
+                if self.stop_event.wait(min(0.5, remaining)):
+                    break
+                if self.fault_refresh_event.is_set():
+                    break
+                remaining -= 0.5
+
+    def refresh_faults(self):
+        self.fault_refresh_event.set()
 
     # ------------------------------------------------------------ automation
     def _ui(self, fn, *args):
