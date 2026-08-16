@@ -22,6 +22,8 @@ import requests
 import tkinter as tk
 from tkinter import filedialog
 
+from fault_translations import DEVICE_TYPE, FAULT_CONTENT
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -41,8 +43,9 @@ BMS_DEVICE_IDS = [2, 3]
 BMS_INTERVAL = 5.0  # seconds (matches the extension)
 POWER_GROUP_INTERVAL = 1.0  # seconds (power group is requested every 1s)
 POWER_GROUP_DEVICES = ["GateMeter", "ESS1 master", "ESS2 slave"]
-FAULT_INTERVAL = 1.0  # seconds (active faults are polled every 1s)
-FAULT_PAGE_SIZE = 50
+FAULT_INTERVAL = 1.0  # seconds (alarms are polled every 1s)
+FAULT_PAGE_SIZE = 100
+FAULT_HANDLE_STATUS = 2
 RECONNECT_MAX_BACKOFF = 30.0  # seconds between retries while disconnected
 
 # --- automation ---
@@ -1014,8 +1017,8 @@ class PcsRealtimeMonitor(ctk.CTk):
             try:
                 if not self.token:
                     self.login()
-                url = (f"{self.settings['base_url']}/v1/alarm?search=&level=0&alarm-type="
-                       f"&page=1&page-size={FAULT_PAGE_SIZE}&handle-status=1")
+                url = (f"{self.settings['base_url']}/v1/alarm?page=1&page-size={FAULT_PAGE_SIZE}"
+                       f"&search=&level=0&alarm-type=&handle-status={FAULT_HANDLE_STATUS}")
                 resp = self.session.get(url, headers=self._headers(), timeout=(5, 10))
                 resp.raise_for_status()
                 data = resp.json()
@@ -1024,7 +1027,8 @@ class PcsRealtimeMonitor(ctk.CTk):
                 for it in items:
                     faults.append({
                         "device": it.get("device_name") or f"device {it.get('device_id')}",
-                        "content": it.get("content") or "",
+                        "content": FAULT_CONTENT.get(it.get("content") or "", it.get("content") or ""),
+                        "device_type": DEVICE_TYPE.get(it.get("device_type") or "", it.get("device_type") or ""),
                         "level": it.get("level") or 0,
                         "time": self._fmt_fault_time(it.get("occur_time")),
                     })
@@ -1552,7 +1556,7 @@ class PcsRealtimeMonitor(ctk.CTk):
                     for w in getattr(self.fault_scroll, "winfo_children", lambda: [])():
                         w.destroy()
                     if not fault_items:
-                        ctk.CTkLabel(self.fault_scroll, text="no active faults", font=ctk.CTkFont(size=12),
+                        ctk.CTkLabel(self.fault_scroll, text="no alarms", font=ctk.CTkFont(size=12),
                                      text_color=COLOR_GRAY).pack(pady=10)
                     for f in fault_items:
                         level = int(f.get("level") or 0)
