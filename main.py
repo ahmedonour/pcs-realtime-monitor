@@ -58,8 +58,8 @@ HOT_END_HOUR = 18
 HOT_TEMP = 35.0  # degrees Celsius
 SOC_HIGH = 95.0  # any BMS >= 95% triggers rule 3 discharge
 SOC_RECOVER = 85.0  # any BMS <= 85% triggers recovery (charge)
-ESS_DISCHARGE_TARGET = -30.0  # kW per ESS: stop lowering once both reach this
-ESS_CHARGE_STOP_TOTAL = 30.0  # kW: ESS1+ESS2 total above this at gate~0 stops raising
+ESS_DISCHARGE_TARGET = -30.0  # kW per ESS: stop lowering once any one reaches this
+ESS_CHARGE_STOP = 30.0  # kW per ESS: any ESS above this stops raising during charging
 GATE_ZERO_TOL = 0.5  # kW: gate meter considered zero
 GATE_STABLE_BAND = 1.0  # kW: gate considered stable if it moves less than this
 GATE_STABLE_TICKS = 2  # consecutive stable readings before "gate stable"
@@ -171,6 +171,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self._gate_stable_count = 0
         self._charge_phase = False
         self._discharge_locked = False
+        self._charge_locked = False
         self.auto_settings = {
             "interval": AUTOMATION_INTERVAL,
             "step": AUTOMATION_STEP,
@@ -1162,20 +1163,23 @@ class PcsRealtimeMonitor(ctk.CTk):
             if high_soc:
                 rule = "rule3-soc-high"
                 self._charge_phase = False
+                self._charge_locked = False
                 if ess1 is not None and ess2 is not None:
                     if self._discharge_locked and not (ess1 > 0.0 and ess2 > 0.0):
                         action = "SOC>=95, ESS at -30 target, hold"
                     else:
                         self._discharge_locked = False
-                        if ess1 <= ESS_DISCHARGE_TARGET and ess2 <= ESS_DISCHARGE_TARGET:
+                        if ess1 <= ESS_DISCHARGE_TARGET or ess2 <= ESS_DISCHARGE_TARGET:
                             self._discharge_locked = True
-                            action = "SOC>=95, ESS reached -30, stop lowering"
+                            action = "SOC>=95, an ESS reached -30, stop lowering"
                         else:
                             target = current_pv - s["step"]
-                            action = "SOC>=95, lower PV until ESS1/2 reach -30"
+                            action = "SOC>=95, lower PV until an ESS reaches -30"
                 else:
                     action = "SOC>=95, waiting for ESS data"
             elif self._charge_phase or recover_soc:
+                if not self._charge_phase:
+                    self._charge_locked = False
                 self._charge_phase = True
                 self._discharge_locked = False
                 rule = "rule3-charge"
@@ -1186,20 +1190,19 @@ class PcsRealtimeMonitor(ctk.CTk):
                     if self._is_cloudy():
                         self._gate_stable(gate_raw)
                         action = "cloudy, stop raising until clouds clear"
-                    elif ess_total < 0.0:
-                        target = current_pv + s["step"]
-                        action = "ESS negative, raise PV to charge until 95%"
-                    elif abs(gate_raw) <= GATE_ZERO_TOL and ess_total > ESS_CHARGE_STOP_TOTAL:
+                    elif self._charge_locked:
+                        action = "ESS reached 30 kW, holding until SOC 95"
+                    elif ess1 >= ESS_CHARGE_STOP or ess2 >= ESS_CHARGE_STOP:
+                        self._charge_locked = True
+                        action = "ESS reached 30 kW, stop increasing"
+                    elif abs(gate_raw) <= GATE_ZERO_TOL and ess_total > ESS_CHARGE_STOP:
                         self._gate_stable(gate_raw)
                         action = "gate 0 and ESS>30, stop raising"
                     elif self._gate_stable(gate_raw):
                         action = "gate stable, stop raising"
-                    elif ess_total < ESS_CHARGE_STOP_TOTAL:
+                    else:
                         target = current_pv + s["step"]
                         action = "ESS below 30 kW, raise PV to charge until 95%"
-                    else:
-                        self._gate_stable(gate_raw)
-                        action = "ESS>30 kW, hold"
             elif hot:
                 rule = "rule2-hot"
                 target = max(s["pv_min"], gate - 20.0)
@@ -1576,16 +1579,15 @@ class PcsRealtimeMonitor(ctk.CTk):
                     for f in fault_items:
                         level = int(f.get("level") or 0)
                         row = ctk.CTkFrame(self.fault_scroll, fg_color="transparent")
-                        row.pack(fill="x", padx=6, pady=(0, 5))
+                        row.pack(fill="x", padx=2, pady=(0, 1))
                         color = COLOR_RED if level >= 1 else COLOR_ORANGE
-                        top = ctk.CTkFrame(row, fg_color="transparent")
-                        top.pack(fill="x")
-                        ctk.CTkLabel(top, text=f.get("device", "device"), font=ctk.CTkFont(size=11, weight="bold"),
-                                     text_color=color).pack(side="left")
-                        ctk.CTkLabel(top, text=f.get("time", ""), font=ctk.CTkFont(size=10),
-                                     text_color=COLOR_GRAY).pack(side="right")
-                        ctk.CTkLabel(row, text=f.get("content", ""), font=ctk.CTkFont(size=11),
-                                     text_color=self.colors["text"], wraplength=420, justify="left").pack(fill="x", anchor="w")
+                        ctk.CTkLabel(row, text=f.get("device", "device"), font=ctk.CTkFont(size=10, weight="bold"),
+                                     text_color=color).pack(side="left", padx=(0, 6))
+                        ctk.CTkLabel(row, text=f.get("time", ""), font=ctk.CTkFont(size=9),
+                                     text_color=COLOR_GRAY).pack(side="left", padx=(0, 6))
+                        ctk.CTkLabel(row, text=f.get("content", ""), font=ctk.CTkFont(size=10),
+                                     text_color=self.colors["text"], justify="left").pack(side="left", fill="x",
+                                                                                         expand=True, anchor="w")
         self.after(200, self.refresh_ui)
 
 
