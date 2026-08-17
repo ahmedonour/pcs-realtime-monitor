@@ -55,6 +55,7 @@ PV_POWER_MIN = 0.0
 PV_POWER_MAX = 500.0
 HOT_START_HOUR = 10  # rule 2 window 10:00..18:00
 HOT_END_HOUR = 18
+CHARGE_END_HOUR = 15  # stop raising PV after this hour (15:00 PM)
 HOT_TEMP = 35.0  # degrees Celsius
 SOC_HIGH = 95.0  # any BMS >= 95% triggers rule 3 discharge
 SOC_RECOVER = 85.0  # any BMS <= 85% triggers recovery (charge)
@@ -80,13 +81,6 @@ SEQUENCE_STEPS = [
 ]
 PV_CHARGE_DEVICE_IDS = [1, 2, 3, 4, 6]
 
-COLOR_GREEN = "#4cc38a"
-COLOR_RED = "#e65454"
-COLOR_ORANGE = "#e6a33c"
-COLOR_GRAY = "#8a8aa3"
-COLOR_LIGHT_GREEN = "#a8f0c0"
-COLOR_INFO = "#54a0e8"
-
 THEMES = {
     "dark": {
         "panel": "#1c1d30",
@@ -97,6 +91,12 @@ THEMES = {
         "text": "#c6c6dd",
         "accent_hover": "#3aa372",
         "danger_hover": "#c24444",
+        "green": "#4cc38a",
+        "red": "#e65454",
+        "orange": "#e6a33c",
+        "gray": "#8a8aa3",
+        "light_green": "#a8f0c0",
+        "info": "#54a0e8",
     },
     "light": {
         "panel": "#eef1f8",
@@ -107,6 +107,12 @@ THEMES = {
         "text": "#232a3a",
         "accent_hover": "#3aa372",
         "danger_hover": "#c24444",
+        "green": "#2a9d6a",
+        "red": "#d13b3b",
+        "orange": "#c47e1e",
+        "gray": "#5c6078",
+        "light_green": "#1b7a48",
+        "info": "#2b7bd4",
     },
 }
 
@@ -172,6 +178,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self._charge_phase = False
         self._discharge_locked = False
         self._charge_locked = False
+        self._last_automation_day = None
         self.auto_settings = {
             "interval": AUTOMATION_INTERVAL,
             "step": AUTOMATION_STEP,
@@ -331,20 +338,20 @@ class PcsRealtimeMonitor(ctk.CTk):
         ctk.CTkLabel(card, text="", image=logo).grid(row=0, column=0, pady=(28, 4))
 
         ctk.CTkLabel(card, text="PCS Realtime Monitor", font=ctk.CTkFont(size=20, weight="bold")).grid(row=1, column=0, pady=(0, 2))
-        ctk.CTkLabel(card, text="Sign in to view the live dashboard", font=ctk.CTkFont(size=12), text_color=COLOR_GRAY).grid(row=2, column=0, pady=(0, 18))
+        ctk.CTkLabel(card, text="Sign in to view the live dashboard", font=ctk.CTkFont(size=12), text_color=self.colors["gray"]).grid(row=2, column=0, pady=(0, 18))
 
         self.ent_url = self._field(card, 3, "Server URL", self.settings["base_url"])
         self.ent_user = self._field(card, 5, "Username", self.settings["username"])
         self.ent_pass = self._field(card, 7, "Password", self.settings["password"], show="*")
 
-        self.lbl_login_msg = ctk.CTkLabel(card, text="", font=ctk.CTkFont(size=11), text_color=COLOR_RED)
+        self.lbl_login_msg = ctk.CTkLabel(card, text="", font=ctk.CTkFont(size=11), text_color=self.colors["red"])
         self.lbl_login_msg.grid(row=9, column=0, pady=(6, 0))
 
         self.btn_login = ctk.CTkButton(card, text="Login", height=38, corner_radius=8, command=self.login_action)
         self.btn_login.grid(row=10, column=0, padx=30, pady=(10, 28), sticky="ew")
 
     def _field(self, parent, row, label, value, show=None):
-        ctk.CTkLabel(parent, text=label, font=ctk.CTkFont(size=10), text_color=COLOR_GRAY).grid(
+        ctk.CTkLabel(parent, text=label, font=ctk.CTkFont(size=10), text_color=self.colors["gray"]).grid(
             row=row, column=0, sticky="w", padx=30, pady=(6, 0))
         ent = ctk.CTkEntry(parent, show=show or "", height=34, corner_radius=8)
         ent.insert(0, value)
@@ -379,7 +386,7 @@ class PcsRealtimeMonitor(ctk.CTk):
 
     def _login_fail(self, msg):
         self.btn_login.configure(state="normal", text="Login")
-        self.lbl_login_msg.configure(text=f"Login failed: {msg}", text_color=COLOR_RED)
+        self.lbl_login_msg.configure(text=f"Login failed: {msg}", text_color=self.colors["red"])
 
     # ------------------------------------------------------------ dashboard view
     def build_dashboard(self):
@@ -392,7 +399,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         header.grid(row=0, column=0, sticky="ew", padx=24, pady=(8, 4))
         header.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(header, text="PCS Realtime Monitor", font=ctk.CTkFont(size=18, weight="bold")).pack(side="left")
-        self.lbl_conn = ctk.CTkLabel(header, text="connected", font=ctk.CTkFont(size=11), text_color=COLOR_GREEN)
+        self.lbl_conn = ctk.CTkLabel(header, text="connected", font=ctk.CTkFont(size=11), text_color=self.colors["green"])
         self.lbl_conn.pack(side="left", padx=12)
         self.btn_logout = ctk.CTkButton(header, text="Log out", width=80, height=28, corner_radius=8,
                                         fg_color=self.colors["button"], hover_color=self.colors["button_hover"],
@@ -437,8 +444,8 @@ class PcsRealtimeMonitor(ctk.CTk):
         pg_head.pack(fill="x")
         pg_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(pg_head, text="POWER GROUP", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_GRAY).pack(side="left")
-        self.lbl_pg_ts = ctk.CTkLabel(pg_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+                     text_color=self.colors["gray"]).pack(side="left")
+        self.lbl_pg_ts = ctk.CTkLabel(pg_head, text="", font=ctk.CTkFont(size=10), text_color=self.colors["gray"])
         self.lbl_pg_ts.pack(side="right")
 
         self.power_group_container = ctk.CTkFrame(pg_col, fg_color="transparent")
@@ -454,8 +461,8 @@ class PcsRealtimeMonitor(ctk.CTk):
         pv_head.pack(fill="x")
         pv_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(pv_head, text="PHOTOVOLTAIC DEVICES", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_GRAY).pack(side="left")
-        self.lbl_pv_ts = ctk.CTkLabel(pv_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+                     text_color=self.colors["gray"]).pack(side="left")
+        self.lbl_pv_ts = ctk.CTkLabel(pv_head, text="", font=ctk.CTkFont(size=10), text_color=self.colors["gray"])
         self.lbl_pv_ts.pack(side="right")
 
         self.pv_container = ctk.CTkFrame(pv_col, fg_color="transparent")
@@ -469,8 +476,8 @@ class PcsRealtimeMonitor(ctk.CTk):
         bms_head.grid(row=2, column=0, sticky="ew", pady=(8, 0))
         bms_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(bms_head, text="BATTERY (BMS)", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_GRAY).pack(side="left")
-        self.lbl_bms_ts = ctk.CTkLabel(bms_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+                     text_color=self.colors["gray"]).pack(side="left")
+        self.lbl_bms_ts = ctk.CTkLabel(bms_head, text="", font=ctk.CTkFont(size=10), text_color=self.colors["gray"])
         self.lbl_bms_ts.pack(side="right")
 
         bms_row = ctk.CTkFrame(self.content, fg_color="transparent")
@@ -489,11 +496,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         fault_head.pack(fill="x")
         fault_head.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(fault_head, text="FAULTS", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_RED).pack(side="left")
+                     text_color=self.colors["red"]).pack(side="left")
         ctk.CTkButton(fault_head, text="↻ Refresh", width=80, height=24, corner_radius=6,
                       fg_color=self.colors["button"], hover_color=self.colors["button_hover"],
                       command=self.refresh_faults).pack(side="right", padx=(8, 0))
-        self.lbl_fault_ts = ctk.CTkLabel(fault_head, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_fault_ts = ctk.CTkLabel(fault_head, text="", font=ctk.CTkFont(size=10), text_color=self.colors["gray"])
         self.lbl_fault_ts.pack(side="right")
 
         self.fault_scroll = ctk.CTkScrollableFrame(fault_col, height=230, corner_radius=12,
@@ -510,7 +517,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         left.grid(row=0, column=0, sticky="nsew")
 
         ctk.CTkLabel(left, text="CONTROL", font=ctk.CTkFont(size=11, weight="bold"),
-                     text_color=COLOR_GRAY).pack(anchor="w", padx=16, pady=(8, 2))
+                     text_color=self.colors["gray"]).pack(anchor="w", padx=16, pady=(8, 2))
 
         seq_row = ctk.CTkFrame(left, fg_color="transparent")
         seq_row.pack(fill="x", padx=16, pady=(0, 2))
@@ -525,7 +532,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             btn.pack(side="left", padx=(0, 8))
             self.btn_seq_bms[did] = btn
 
-        self.lbl_seq_status = ctk.CTkLabel(left, text="idle", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_seq_status = ctk.CTkLabel(left, text="idle", font=ctk.CTkFont(size=10), text_color=self.colors["gray"])
         self.lbl_seq_status.pack(anchor="w", padx=16, pady=(0, 2))
 
         ctk.CTkFrame(left, height=1, fg_color=c["separator"]).pack(fill="x", padx=16, pady=(0, 4))
@@ -536,12 +543,12 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.ent_pv_power = ctk.CTkEntry(pv_row, width=100, height=26, corner_radius=8)
         self.ent_pv_power.insert(0, "100")
         self.ent_pv_power.pack(side="left", padx=(0, 8))
-        ctk.CTkLabel(pv_row, text="kW", font=ctk.CTkFont(size=11), text_color=COLOR_GRAY).pack(side="left", padx=(0, 12))
+        ctk.CTkLabel(pv_row, text="kW", font=ctk.CTkFont(size=11), text_color=self.colors["gray"]).pack(side="left", padx=(0, 12))
         self.btn_pv_power = ctk.CTkButton(pv_row, text="Apply", width=80, height=26, corner_radius=8,
                                           command=self.apply_pv_power)
         self.btn_pv_power.pack(side="left")
 
-        self.lbl_pv_power_status = ctk.CTkLabel(left, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+        self.lbl_pv_power_status = ctk.CTkLabel(left, text="", font=ctk.CTkFont(size=10), text_color=self.colors["gray"])
         self.lbl_pv_power_status.pack(anchor="w", padx=16, pady=(0, 2))
 
         ctk.CTkFrame(left, height=1, fg_color=c["separator"]).pack(fill="x", padx=16, pady=(0, 4))
@@ -550,7 +557,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         auto_row.pack(fill="x", padx=16, pady=(0, 2))
         ctk.CTkLabel(auto_row, text="Automation", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left", padx=(0, 12))
         self.btn_automation = ctk.CTkButton(auto_row, text="Start Automation", width=150, height=28, corner_radius=8,
-                                            fg_color=COLOR_GREEN, hover_color=c["accent_hover"],
+                                            fg_color=self.colors["green"], hover_color=c["accent_hover"],
                                             command=self.toggle_automation)
         self.btn_automation.pack(side="left", padx=(0, 8))
         self.btn_download_log = ctk.CTkButton(auto_row, text="Download Log", width=120, height=28, corner_radius=8,
@@ -560,8 +567,8 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.chk_background = ctk.CTkCheckBox(
             left, text="Run in background when the window is closed",
-            variable=self.run_in_background, text_color=COLOR_GRAY,
-            font=ctk.CTkFont(size=10), fg_color=COLOR_GREEN, hover_color=c["accent_hover"],
+            variable=self.run_in_background, text_color=self.colors["gray"],
+            font=ctk.CTkFont(size=10), fg_color=self.colors["green"], hover_color=c["accent_hover"],
         )
         self.chk_background.pack(anchor="w", padx=16, pady=(6, 6))
 
@@ -577,7 +584,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.automation["enabled"] = False
         if self.btn_automation is not None:
             self.btn_automation.configure(
-                text="Start Automation", fg_color=COLOR_GREEN, hover_color=self.colors["accent_hover"])
+                text="Start Automation", fg_color=self.colors["green"], hover_color=self.colors["accent_hover"])
         self.show_login()
         with self.lock:
             self.pv = {"devices": {}, "ts": None, "error": None}
@@ -626,11 +633,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         for name in names:
             card = ctk.CTkFrame(self.power_group_container, corner_radius=12, fg_color=self.colors["card"])
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
-                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
-            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
+                         text_color=self.colors["info"]).pack(anchor="w", padx=14, pady=(8, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=self.colors["green"])
             value.pack(anchor="w", padx=14)
             caption = ctk.CTkLabel(card, text="total active power (kW)", font=ctk.CTkFont(size=10),
-                                   text_color=COLOR_GRAY)
+                                   text_color=self.colors["gray"])
             caption.pack(anchor="w", padx=14, pady=(2, 8))
             self.power_group_cards[name] = {"card": card, "value": value, "caption": caption}
         self.power_group_rendered = list(names)
@@ -643,10 +650,10 @@ class PcsRealtimeMonitor(ctk.CTk):
         for name in names:
             card = ctk.CTkFrame(self.pv_container, corner_radius=12, fg_color=self.colors["card"])
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
-                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
-            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
+                         text_color=self.colors["info"]).pack(anchor="w", padx=14, pady=(8, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=self.colors["green"])
             value.pack(anchor="w", padx=14)
-            ctk.CTkLabel(card, text="kilowatts (kW)", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY).pack(anchor="w", padx=14, pady=(2, 8))
+            ctk.CTkLabel(card, text="kilowatts (kW)", font=ctk.CTkFont(size=10), text_color=self.colors["gray"]).pack(anchor="w", padx=14, pady=(2, 8))
             self.pv_cards[name] = {"card": card, "value": value}
         self.pv_rendered = list(names)
         self._flow_cards(self.pv_container, [c["card"] for c in self.pv_cards.values()])
@@ -658,13 +665,13 @@ class PcsRealtimeMonitor(ctk.CTk):
         for name in names:
             card = ctk.CTkFrame(self.bms_container, corner_radius=12, fg_color=self.colors["card"])
             ctk.CTkLabel(card, text=name, font=ctk.CTkFont(size=12, weight="bold"),
-                         text_color=COLOR_INFO).pack(anchor="w", padx=14, pady=(8, 2))
-            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_GREEN)
+                         text_color=self.colors["info"]).pack(anchor="w", padx=14, pady=(8, 2))
+            value = ctk.CTkLabel(card, text="--", font=ctk.CTkFont(size=18, weight="bold"), text_color=self.colors["green"])
             value.pack(anchor="w", padx=14)
-            progress = ctk.CTkProgressBar(card, height=6, corner_radius=3, progress_color=COLOR_GREEN)
+            progress = ctk.CTkProgressBar(card, height=6, corner_radius=3, progress_color=self.colors["green"])
             progress.set(0)
             progress.pack(fill="x", padx=14, pady=(6, 2))
-            status = ctk.CTkLabel(card, text="", font=ctk.CTkFont(size=10), text_color=COLOR_GRAY)
+            status = ctk.CTkLabel(card, text="", font=ctk.CTkFont(size=10), text_color=self.colors["gray"])
             status.pack(anchor="w", padx=14, pady=(0, 8))
             self.bms_cards[name] = {"card": card, "value": value, "progress": progress, "status": status}
         self.bms_rendered = list(names)
@@ -772,7 +779,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         try:
             run_power = float(raw)
         except ValueError:
-            self.lbl_pv_power_status.configure(text="Invalid number", text_color=COLOR_RED)
+            self.lbl_pv_power_status.configure(text="Invalid number", text_color=self.colors["red"])
             return
         self.btn_pv_power.configure(state="disabled", text="Applying...")
         threading.Thread(target=self._pv_power_worker, args=(run_power,), daemon=True).start()
@@ -802,11 +809,11 @@ class PcsRealtimeMonitor(ctk.CTk):
         try:
             self._apply_pv_power_sync(run_power)
             self.after(0, lambda: self.lbl_pv_power_status.configure(
-                text=f"PV power set to {run_power} kW", text_color=COLOR_GREEN))
+                text=f"PV power set to {run_power} kW", text_color=self.colors["green"]))
             self.after(0, lambda: self._set_pv_entry(run_power))
         except Exception as e:
             self.after(0, lambda: self.lbl_pv_power_status.configure(
-                text=f"Failed: {str(e)[:60]}", text_color=COLOR_RED))
+                text=f"Failed: {str(e)[:60]}", text_color=self.colors["red"]))
         finally:
             self.after(0, lambda: self.btn_pv_power.configure(state="normal", text="Apply"))
 
@@ -1068,7 +1075,9 @@ class PcsRealtimeMonitor(ctk.CTk):
         except Exception:
             pass
 
-    def _log_console(self, msg, color=COLOR_LIGHT_GREEN):
+    def _log_console(self, msg, color=None):
+        if color is None:
+            color = self.colors["light_green"]
         if self.console is None:
             return
         try:
@@ -1086,15 +1095,15 @@ class PcsRealtimeMonitor(ctk.CTk):
             self.automation["enabled"] = False
             if self.btn_automation is not None:
                 self.btn_automation.configure(
-                    text="Start Automation", fg_color=COLOR_GREEN, hover_color=self.colors["accent_hover"])
-            self._log_console("Automation stopped", COLOR_RED)
+                    text="Start Automation", fg_color=self.colors["green"], hover_color=self.colors["accent_hover"])
+            self._log_console("Automation stopped", self.colors["red"])
         else:
             self.automation["enabled"] = True
             self.automation["pv_power"] = self._read_pv_setting()
             if self.btn_automation is not None:
                 self.btn_automation.configure(
-                    text="Stop Automation", fg_color=COLOR_RED, hover_color=self.colors["danger_hover"])
-            self._log_console("Automation started", COLOR_GREEN)
+                    text="Stop Automation", fg_color=self.colors["red"], hover_color=self.colors["danger_hover"])
+            self._log_console("Automation started", self.colors["green"])
             threading.Thread(target=self.automation_tick, daemon=True).start()
 
     def _read_pv_setting(self):
@@ -1120,7 +1129,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             try:
                 self.automation_tick()
             except Exception as e:
-                self._ui(self._log_console, f"automation error: {e}", COLOR_RED)
+                self._ui(self._log_console, f"automation error: {e}", self.colors["red"])
 
     def _gate_stable(self, gate_raw):
         prev = self._gate_prev
@@ -1145,15 +1154,25 @@ class PcsRealtimeMonitor(ctk.CTk):
             ess2 = devices.get("ESS2 slave", {}).get("pcs_apparent_power")
             socs = [d.get("soc") for d in (bms.get("devices") or {}).values() if d.get("soc") is not None]
             if gate_raw is None:
-                self._ui(self._log_console, "no gate data yet, skipping", COLOR_GRAY)
+                self._ui(self._log_console, "no gate data yet, skipping", self.colors["gray"])
                 return
             gate = abs(gate_raw)
             now = datetime.now()
+            today = now.date()
+            if self._last_automation_day is not None and today != self._last_automation_day:
+                self._charge_phase = False
+                self._discharge_locked = False
+                self._charge_locked = False
+                self._gate_prev = None
+                self._gate_stable_count = 0
+                self._ui(self._log_console, "morning reset: automation state cleared", self.colors["light_green"])
+            self._last_automation_day = today
             temp = self._get_temperature()
             s = self.auto_settings
             hot = HOT_START_HOUR <= now.hour <= HOT_END_HOUR and temp is not None and temp >= s["hot_temp"]
             high_soc = any(x >= s["soc_high"] for x in socs)
             recover_soc = any(x <= s["soc_recover"] for x in socs)
+            afternoon_hold = now.hour >= CHARGE_END_HOUR
             soc = max(socs) if socs else None
             current_pv = self.automation.get("pv_power") or self._read_pv_setting()
             target = current_pv
@@ -1183,7 +1202,9 @@ class PcsRealtimeMonitor(ctk.CTk):
                 self._charge_phase = True
                 self._discharge_locked = False
                 rule = "rule3-charge"
-                if ess1 is None or ess2 is None:
+                if afternoon_hold:
+                    action = "after 15:00, stop raising PV"
+                elif ess1 is None or ess2 is None:
                     action = "charging until 95%, waiting for ESS data"
                 else:
                     ess_total = ess1 + ess2
@@ -1237,12 +1258,12 @@ class PcsRealtimeMonitor(ctk.CTk):
                     self._ui(self._set_pv_entry, target)
                     self._ui(self._log_console,
                              f"{action} -> PV {current_pv:.1f} -> {target:.1f} kW",
-                             COLOR_GREEN)
+                             self.colors["green"])
                 except Exception as e:
-                    self._ui(self._log_console, f"{action} failed: {e}", COLOR_RED)
+                    self._ui(self._log_console, f"{action} failed: {e}", self.colors["red"])
             else:
                 self.automation["pv_power"] = target
-                self._ui(self._log_console, action, COLOR_GRAY)
+                self._ui(self._log_console, action, self.colors["gray"])
 
             self._append_log({
                 "timestamp": now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -1271,7 +1292,7 @@ class PcsRealtimeMonitor(ctk.CTk):
                     writer.writeheader()
                 writer.writerow({k: record.get(k, "") for k in LOG_FIELDS})
         except Exception as e:
-            self._ui(self._log_console, f"log write error: {e}", COLOR_RED)
+            self._ui(self._log_console, f"log write error: {e}", self.colors["red"])
 
     def _available_log_days(self):
         days = []
@@ -1285,7 +1306,7 @@ class PcsRealtimeMonitor(ctk.CTk):
     def download_log(self):
         days = self._available_log_days()
         if not days:
-            self._log_console("No logs available yet", COLOR_RED)
+            self._log_console("No logs available yet", self.colors["red"])
             return
         top = ctk.CTkToplevel(self)
         top.title("Download Log")
@@ -1306,10 +1327,10 @@ class PcsRealtimeMonitor(ctk.CTk):
             if path:
                 try:
                     shutil.copy(str(src), path)
-                    self._log_console(f"Log saved: {path}", COLOR_GREEN)
+                    self._log_console(f"Log saved: {path}", self.colors["green"])
                     top.destroy()
                 except Exception as e:
-                    self._log_console(f"save failed: {e}", COLOR_RED)
+                    self._log_console(f"save failed: {e}", self.colors["red"])
 
         ctk.CTkButton(top, text="Save", width=120, height=30, corner_radius=8, command=save).pack(pady=(4, 12))
 
@@ -1424,10 +1445,10 @@ class PcsRealtimeMonitor(ctk.CTk):
                 self._log_console(
                     f"Settings saved (interval {self.auto_settings['interval']}s, "
                     f"step {self.auto_settings['step']} kW, hot temp {self.auto_settings['hot_temp']}°C)",
-                    COLOR_LIGHT_GREEN)
+                    self.colors["light_green"])
                 top.destroy()
             except ValueError:
-                self._log_console("Settings: invalid number", COLOR_RED)
+                self._log_console("Settings: invalid number", self.colors["red"])
 
         ctk.CTkButton(top, text="Save", width=140, height=30, corner_radius=8,
                       command=save).grid(row=len(fields), column=0, columnspan=2, pady=18)
@@ -1469,11 +1490,11 @@ class PcsRealtimeMonitor(ctk.CTk):
 
             # --- header connection status ---
             if conn["status"] == "error":
-                self.lbl_conn.configure(text="reconnecting...", text_color=COLOR_RED)
+                self.lbl_conn.configure(text="reconnecting...", text_color=self.colors["red"])
             elif conn["status"] == "connected":
-                self.lbl_conn.configure(text="connected", text_color=COLOR_GREEN)
+                self.lbl_conn.configure(text="connected", text_color=self.colors["green"])
             else:
-                self.lbl_conn.configure(text="connecting...", text_color=COLOR_INFO)
+                self.lbl_conn.configure(text="connecting...", text_color=self.colors["info"])
 
             # --- control: sequence status ---
             state = "disabled" if self.sequence_running else "normal"
@@ -1492,9 +1513,9 @@ class PcsRealtimeMonitor(ctk.CTk):
                     else:
                         parts.append(f"BMS {did}: {st.get('step', '...')}")
                 self.lbl_seq_status.configure(text="  |  ".join(parts),
-                                              text_color=COLOR_RED if failed else COLOR_INFO)
+                                              text_color=self.colors["red"] if failed else self.colors["info"])
             else:
-                self.lbl_seq_status.configure(text="idle", text_color=COLOR_GRAY)
+                self.lbl_seq_status.configure(text="idle", text_color=self.colors["gray"])
 
             # --- power group ---
             pg = dict(self.power_group)
@@ -1502,60 +1523,60 @@ class PcsRealtimeMonitor(ctk.CTk):
             if pg_names and pg_names != self.power_group_rendered:
                 self.render_power_group_cards(pg_names)
             if pg.get("error"):
-                self.lbl_pg_ts.configure(text=f"connection error: {pg['error'][:50]}", text_color=COLOR_RED)
+                self.lbl_pg_ts.configure(text=f"connection error: {pg['error'][:50]}", text_color=self.colors["red"])
             else:
                 self.lbl_pg_ts.configure(text="updated " + pg["ts"] if pg.get("ts") else "waiting for data...",
-                                         text_color=COLOR_GRAY)
+                                         text_color=self.colors["gray"])
             for name, widgets in self.power_group_cards.items():
                 info = pg["devices"].get(name) or {}
                 pcs_power = info.get("pcs_apparent_power")
                 if pcs_power is not None:
-                    widgets["value"].configure(text=f"{pcs_power} kW", text_color=COLOR_GREEN)
+                    widgets["value"].configure(text=f"{pcs_power} kW", text_color=self.colors["green"])
                     widgets["caption"].configure(text="PCS total active power (kW)")
                 else:
                     apparent = info.get("apparent_power")
                     widgets["caption"].configure(text="total active power (kW)")
                     if apparent is not None:
-                        widgets["value"].configure(text=f"{apparent} kW", text_color=COLOR_GREEN)
+                        widgets["value"].configure(text=f"{apparent} kW", text_color=self.colors["green"])
                     else:
-                        widgets["value"].configure(text="--", text_color=COLOR_GREEN)
+                        widgets["value"].configure(text="--", text_color=self.colors["green"])
 
             # --- photovoltaic ---
             pv_names = sorted(pv["devices"].keys())
             if pv_names and pv_names != self.pv_rendered:
                 self.render_pv_cards(pv_names)
             if pv.get("error"):
-                self.lbl_pv_ts.configure(text=f"connection error: {pv['error'][:50]}", text_color=COLOR_RED)
+                self.lbl_pv_ts.configure(text=f"connection error: {pv['error'][:50]}", text_color=self.colors["red"])
             else:
                 self.lbl_pv_ts.configure(text="updated " + pv["ts"] if pv.get("ts") else "waiting for data...",
-                                         text_color=COLOR_GRAY)
+                                         text_color=self.colors["gray"])
             for name, widgets in self.pv_cards.items():
                 power = pv["devices"].get(name)
                 if power is not None:
-                    widgets["value"].configure(text=f"{power} kW", text_color=COLOR_GREEN)
+                    widgets["value"].configure(text=f"{power} kW", text_color=self.colors["green"])
                 else:
-                    widgets["value"].configure(text="--", text_color=COLOR_GREEN)
+                    widgets["value"].configure(text="--", text_color=self.colors["green"])
 
             # --- battery ---
             bms_names = list(bms["devices"].keys())
             if bms_names and bms_names != self.bms_rendered:
                 self.render_bms_cards(bms_names)
             if bms.get("error"):
-                self.lbl_bms_ts.configure(text=f"connection error: {bms['error'][:50]}", text_color=COLOR_RED)
+                self.lbl_bms_ts.configure(text=f"connection error: {bms['error'][:50]}", text_color=self.colors["red"])
             else:
                 self.lbl_bms_ts.configure(text="updated " + bms["ts"] if bms.get("ts") else "waiting for data...",
-                                          text_color=COLOR_GRAY)
+                                          text_color=self.colors["gray"])
             for name, card in self.bms_cards.items():
                     info = bms["devices"].get(name) or {}
                     soc = info.get("soc")
                     if soc is not None:
                         try:
-                            card["value"].configure(text=f"{float(soc):.1f}%", text_color=COLOR_GREEN)
+                            card["value"].configure(text=f"{float(soc):.1f}%", text_color=self.colors["green"])
                             card["progress"].set(max(0.0, min(float(soc) / 100.0, 1.0)))
                         except Exception:
                             card["value"].configure(text="--")
                     else:
-                        card["value"].configure(text="--", text_color=COLOR_GREEN)
+                        card["value"].configure(text="--", text_color=self.colors["green"])
                         card["progress"].set(0)
                     status = BMS_STATUS_MAP.get(info.get("status"), "-")
                     card["status"].configure(text=f"status: {status}")
@@ -1564,10 +1585,10 @@ class PcsRealtimeMonitor(ctk.CTk):
             fault_items = faults.get("items") or []
             if self.fault_scroll is not None:
                 if faults.get("error"):
-                    self.lbl_fault_ts.configure(text=f"connection error: {faults['error'][:50]}", text_color=COLOR_RED)
+                    self.lbl_fault_ts.configure(text=f"connection error: {faults['error'][:50]}", text_color=self.colors["red"])
                 else:
                     self.lbl_fault_ts.configure(text=("updated " + faults["ts"] if faults.get("ts") else "waiting for data..."),
-                                                text_color=COLOR_GRAY)
+                                                text_color=self.colors["gray"])
                 key = (faults.get("ts"), tuple((f["device"], f["content"], f["level"], f["time"]) for f in fault_items))
                 if key != self._faults_rendered:
                     self._faults_rendered = key
@@ -1575,16 +1596,16 @@ class PcsRealtimeMonitor(ctk.CTk):
                         w.destroy()
                     if not fault_items:
                         ctk.CTkLabel(self.fault_scroll, text="no alarms", font=ctk.CTkFont(size=12),
-                                     text_color=COLOR_GRAY).pack(pady=10)
+                                     text_color=self.colors["gray"]).pack(pady=10)
                     for f in fault_items:
                         level = int(f.get("level") or 0)
                         row = ctk.CTkFrame(self.fault_scroll, fg_color="transparent")
                         row.pack(fill="x", padx=2, pady=(0, 1))
-                        color = COLOR_RED if level >= 1 else COLOR_ORANGE
+                        color = self.colors["red"] if level >= 1 else self.colors["orange"]
                         ctk.CTkLabel(row, text=f.get("device", "device"), font=ctk.CTkFont(size=10, weight="bold"),
                                      text_color=color).pack(side="left", padx=(0, 6))
                         ctk.CTkLabel(row, text=f.get("time", ""), font=ctk.CTkFont(size=9),
-                                     text_color=COLOR_GRAY).pack(side="left", padx=(0, 6))
+                                     text_color=self.colors["gray"]).pack(side="left", padx=(0, 6))
                         ctk.CTkLabel(row, text=f.get("content", ""), font=ctk.CTkFont(size=10),
                                      text_color=self.colors["text"], justify="left").pack(side="left", fill="x",
                                                                                          expand=True, anchor="w")
