@@ -390,6 +390,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_login_msg.configure(text="")
         self.show_dashboard()
         self.start_polling()
+        threading.Thread(target=self._fetch_pv_power_worker, daemon=True).start()
         if self._saved_automation_enabled:
             self.after(500, self._auto_resume_automation)
 
@@ -801,6 +802,39 @@ class PcsRealtimeMonitor(ctk.CTk):
         if data.get("code") not in (0, None):
             raise RuntimeError(f"code={data.get('code')} message={data.get('message')}")
         return data
+
+    def _api_get(self, path):
+        if not self.token:
+            self.login()
+        url = f"{self.settings['base_url']}{path}"
+        resp = self.session.get(url, headers=self._headers(), timeout=(5, 10))
+        if resp.status_code in (401, 403):
+            self.token = None
+            self.login()
+            resp = self.session.get(url, headers=self._headers(), timeout=(5, 10))
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("code") not in (0, None):
+            raise RuntimeError(f"code={data.get('code')} message={data.get('message')}")
+        return data
+
+    def _fetch_pv_power_from_system(self):
+        try:
+            data = self._api_get("/v1/photovoltaic-charge/2")
+            result = data.get("result") or data
+            settings = result.get("settings") or []
+            if settings and isinstance(settings, list) and len(settings) > 0:
+                run_power = settings[0].get("run_power")
+                if run_power is not None:
+                    return float(run_power)
+        except Exception:
+            pass
+        return None
+
+    def _fetch_pv_power_worker(self):
+        run_power = self._fetch_pv_power_from_system()
+        if run_power is not None:
+            self.after(0, lambda: self._set_pv_entry(run_power))
 
     def start_sequence(self, device_ids):
         if self.sequence_running or not device_ids:
