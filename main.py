@@ -1454,6 +1454,13 @@ class PcsRealtimeMonitor(ctk.CTk):
                       command=save).grid(row=len(fields), column=0, columnspan=2, pady=18)
 
     def rebuild_dashboard(self):
+        self.power_group_cards = {}
+        self.pv_cards = {}
+        self.bms_cards = {}
+        self.power_group_rendered = []
+        self.pv_rendered = []
+        self.bms_rendered = []
+        self._faults_rendered = None
         try:
             self.dashboard_view.destroy()
         except Exception:
