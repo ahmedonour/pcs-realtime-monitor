@@ -66,6 +66,8 @@ GATE_STABLE_BAND = 1.0  # kW: gate considered stable if it moves less than this
 GATE_STABLE_TICKS = 2  # consecutive stable readings before "gate stable"
 ESS_CHARGE_RANGE = (10.0, 20.0)  # target ESS PCS power during hot window
 LOG_DIR = Path.home() / ".pcs-realtime-monitor" / "logs"
+SETTINGS_DIR = Path.home() / ".pcs-realtime-monitor"
+SETTINGS_FILE = SETTINGS_DIR / "settings.json"
 WEATHER_CACHE_SECONDS = 600  # refetch weather at most every 10 min
 CLOUD_COVER_LIMIT = 60  # % cloud cover above which PV raising pauses during charging
 RAINY_CODES = {45, 48, 51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 71, 73, 75, 77,
@@ -226,6 +228,10 @@ class PcsRealtimeMonitor(ctk.CTk):
 
         self.theme = "dark"
         self.colors = THEMES["dark"]
+        self._saved_automation_enabled = False
+        self._saved_pv_power = 100.0
+
+        self._load_settings_from_disk()
 
         self._window_icon()
         self.build_login()
@@ -309,6 +315,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             self._quit()
 
     def _quit(self):
+        self.save_settings()
         self.stop_polling()
         if self.tray_icon is not None:
             try:
@@ -383,6 +390,8 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.lbl_login_msg.configure(text="")
         self.show_dashboard()
         self.start_polling()
+        if self._saved_automation_enabled:
+            self.after(500, self._auto_resume_automation)
 
     def _login_fail(self, msg):
         self.btn_login.configure(state="normal", text="Login")
@@ -499,6 +508,7 @@ class PcsRealtimeMonitor(ctk.CTk):
                      text_color=self.colors["red"]).pack(side="left")
         ctk.CTkButton(fault_head, text="↻ Refresh", width=80, height=24, corner_radius=6,
                       fg_color=self.colors["button"], hover_color=self.colors["button_hover"],
+                      text_color=self.colors["text"],
                       command=self.refresh_faults).pack(side="right", padx=(8, 0))
         self.lbl_fault_ts = ctk.CTkLabel(fault_head, text="", font=ctk.CTkFont(size=10), text_color=self.colors["gray"])
         self.lbl_fault_ts.pack(side="right")
@@ -541,7 +551,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         pv_row.pack(fill="x", padx=16, pady=(0, 2))
         ctk.CTkLabel(pv_row, text="PV power (run_power)", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left", padx=(0, 12))
         self.ent_pv_power = ctk.CTkEntry(pv_row, width=100, height=26, corner_radius=8)
-        self.ent_pv_power.insert(0, "100")
+        self.ent_pv_power.insert(0, str(self._saved_pv_power))
         self.ent_pv_power.pack(side="left", padx=(0, 8))
         ctk.CTkLabel(pv_row, text="kW", font=ctk.CTkFont(size=11), text_color=self.colors["gray"]).pack(side="left", padx=(0, 12))
         self.btn_pv_power = ctk.CTkButton(pv_row, text="Apply", width=80, height=26, corner_radius=8,
@@ -562,6 +572,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.btn_automation.pack(side="left", padx=(0, 8))
         self.btn_download_log = ctk.CTkButton(auto_row, text="Download Log", width=120, height=28, corner_radius=8,
                                               fg_color=c["button"], hover_color=c["button_hover"],
+                                              text_color=c["text"],
                                               command=self.download_log)
         self.btn_download_log.pack(side="left")
 
@@ -684,6 +695,57 @@ class PcsRealtimeMonitor(ctk.CTk):
             "username": self.ent_user.get().strip(),
             "password": self.ent_pass.get(),
         })
+        self.save_settings()
+
+    def save_settings(self):
+        pv_power = 100.0
+        if self.ent_pv_power is not None:
+            try:
+                pv_power = float(self.ent_pv_power.get().strip())
+            except Exception:
+                pass
+        data = {
+            "base_url": self.settings.get("base_url", DEFAULT_BASE_URL),
+            "username": self.settings.get("username", DEFAULT_USERNAME),
+            "password": self.settings.get("password", DEFAULT_PASSWORD),
+            "theme": self.theme,
+            "pv_power": pv_power,
+            "automation_enabled": self.automation["enabled"],
+            "auto_settings": dict(self.auto_settings),
+        }
+        try:
+            SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
+            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        except Exception:
+            pass
+
+    def _load_settings_from_disk(self):
+        self._saved_automation_enabled = False
+        self._saved_pv_power = 100.0
+        if not SETTINGS_FILE.exists():
+            return
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            return
+        if "base_url" in data:
+            self.settings["base_url"] = data["base_url"]
+        if "username" in data:
+            self.settings["username"] = data["username"]
+        if "password" in data:
+            self.settings["password"] = data["password"]
+        if "theme" in data and data["theme"] in THEMES:
+            self.theme = data["theme"]
+            self.colors = THEMES[self.theme]
+            ctk.set_appearance_mode(self.theme)
+        if "pv_power" in data:
+            self._saved_pv_power = float(data["pv_power"])
+        if "automation_enabled" in data:
+            self._saved_automation_enabled = bool(data["automation_enabled"])
+        if "auto_settings" in data and isinstance(data["auto_settings"], dict):
+            self.auto_settings.update(data["auto_settings"])
 
     def login(self):
         with self.login_lock:
@@ -811,6 +873,7 @@ class PcsRealtimeMonitor(ctk.CTk):
             self.after(0, lambda: self.lbl_pv_power_status.configure(
                 text=f"PV power set to {run_power} kW", text_color=self.colors["green"]))
             self.after(0, lambda: self._set_pv_entry(run_power))
+            self.after(0, self.save_settings)
         except Exception as e:
             self.after(0, lambda: self.lbl_pv_power_status.configure(
                 text=f"Failed: {str(e)[:60]}", text_color=self.colors["red"]))
@@ -1105,6 +1168,18 @@ class PcsRealtimeMonitor(ctk.CTk):
                     text="Stop Automation", fg_color=self.colors["red"], hover_color=self.colors["danger_hover"])
             self._log_console("Automation started", self.colors["green"])
             threading.Thread(target=self.automation_tick, daemon=True).start()
+        self.save_settings()
+
+    def _auto_resume_automation(self):
+        if self.automation["enabled"]:
+            return
+        self.automation["enabled"] = True
+        self.automation["pv_power"] = self._read_pv_setting()
+        if self.btn_automation is not None:
+            self.btn_automation.configure(
+                text="Stop Automation", fg_color=self.colors["red"], hover_color=self.colors["danger_hover"])
+        self._log_console("Automation resumed (was enabled before close)", self.colors["green"])
+        threading.Thread(target=self.automation_tick, daemon=True).start()
 
     def _read_pv_setting(self):
         if self.ent_pv_power is not None:
@@ -1427,7 +1502,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         ]
         top = ctk.CTkToplevel(self)
         top.title("Automation Settings")
-        top.geometry("360x360")
+        top.geometry("360x420")
         top.resizable(False, False)
         entries = {}
         for row, (key, label) in enumerate(fields):
@@ -1446,12 +1521,26 @@ class PcsRealtimeMonitor(ctk.CTk):
                     f"Settings saved (interval {self.auto_settings['interval']}s, "
                     f"step {self.auto_settings['step']} kW, hot temp {self.auto_settings['hot_temp']}°C)",
                     self.colors["light_green"])
+                self.save_settings()
                 top.destroy()
             except ValueError:
                 self._log_console("Settings: invalid number", self.colors["red"])
 
+        btn_row = len(fields)
         ctk.CTkButton(top, text="Save", width=140, height=30, corner_radius=8,
-                      command=save).grid(row=len(fields), column=0, columnspan=2, pady=18)
+                      command=save).grid(row=btn_row, column=0, columnspan=2, pady=(18, 4))
+
+        def reset_locks():
+            self._charge_locked = False
+            self._discharge_locked = False
+            self._charge_phase = False
+            self._gate_stable_count = 0
+            self._gate_prev = None
+            self._log_console("Automation locks reset manually", self.colors["light_green"])
+
+        ctk.CTkButton(top, text="Reset Automation Locks", width=140, height=30, corner_radius=8,
+                      fg_color=self.colors["red"], hover_color=self.colors["danger_hover"],
+                      command=reset_locks).grid(row=btn_row + 1, column=0, columnspan=2, pady=(0, 12))
 
     def rebuild_dashboard(self):
         self.power_group_cards = {}
@@ -1479,6 +1568,7 @@ class PcsRealtimeMonitor(ctk.CTk):
         self.rebuild_dashboard()
         if self.btn_theme is not None:
             self.btn_theme.configure(text="☀" if mode == "light" else "🌙")
+        self.save_settings()
 
     # ------------------------------------------------------------ ui refresh
     def refresh_ui(self):
